@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import "./header.css";
 import { HiOutlineBell, HiOutlineChevronDown, HiOutlineUser, HiOutlineCog, HiOutlineLogout, HiOutlineSearch } from "react-icons/hi";
 import { MdCircle } from "react-icons/md";
+import Link from "next/link";
 
 const notifications = [
   { id: 1, title: "New user registered",   desc: "Alex joined the platform",       time: "2m ago",  unread: true  },
@@ -124,14 +125,14 @@ export default function DashboardHeader() {
                   </div>
                 </div>
                 <div className="py-2">
-                  <button className="menu-item w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:text-white">
+                  <Link href="/control/profile" className="menu-item w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:text-white">
                     <HiOutlineUser className="w-4 h-4 text-indigo-400" />
                     My Profile
-                  </button>
-                  <button className="menu-item w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:text-white">
+                  </Link>
+                  <Link href="/control/settings" className="menu-item w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:text-white">
                     <HiOutlineCog className="w-4 h-4 text-indigo-400" />
                     Settings
-                  </button>
+                  </Link>
                 </div>
                 <div className="border-t py-2" style={{ borderColor: "rgba(255,255,255,0.07)" }}>
                   <button className="menu-item logout w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300">
