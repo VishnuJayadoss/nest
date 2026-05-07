@@ -1,8 +1,9 @@
 import DashboardHeader from "@/app/layout/Header";
-import CRMSideBar from "./CRMSidebar";
+import ERPSideBar from "./ERPSidebar";
 
 
-export default function CRMLayout({
+
+export default function ERPLayout({
     children,
 }: {
     children: React.ReactNode;
@@ -11,7 +12,7 @@ export default function CRMLayout({
         <div className="flex flex-col h-screen">
             <DashboardHeader />
             <div className="flex flex-1 overflow-hidden">
-                <CRMSideBar />
+                <ERPSideBar />
                 <main className="flex-1 overflow-auto">
                     {children}
                 </main>
