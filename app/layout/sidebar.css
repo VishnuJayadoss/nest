@@ -1,0 +1,83 @@
+/* ════════════════════════════
+   SIDEBAR
+════════════════════════════ */
+
+.sidebar-glass {
+    background: var(--panel-bg);
+    border-right: 1px solid var(--panel-border);
+}
+
+.sidebar-glass nav {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139, 92, 246, 0.3) transparent;
+}
+
+.sidebar-glass nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-glass nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-glass nav::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.3);
+    border-radius: 3px;
+}
+
+.sidebar-glass nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 92, 246, 0.5);
+}
+
+.sidebar-logo-row {
+    height: var(--header-height);
+    border-bottom: 1px solid var(--panel-border);
+    flex-shrink: 0;
+}
+
+.sidebar-toggle-btn {
+    background: var(--panel-surface);
+    border: 1px solid var(--panel-border);
+    color: var(--text-muted);
+    transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.sidebar-toggle-btn:hover {
+    border-color: var(--panel-border-hover);
+    color: var(--text-primary);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.3);
+}
+
+.nav-item {
+    color: var(--text-muted);
+    transition: background 0.15s, color 0.15s;
+}
+
+.nav-item:hover {
+    background: var(--panel-hover);
+    color: var(--text-primary);
+}
+
+.nav-item.active {
+    background: rgba(139, 92, 246, 0.15);
+    color: #c4b5fd;
+    border-right: 2px solid var(--violet);
+}
+
+.nav-tooltip {
+    background: #0f1420;
+    border: 1px solid var(--panel-border);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.sidebar-footer {
+    border-top: 1px solid var(--panel-border);
+}
+
+.sidebar-user-row {
+    transition: background 0.15s;
+}
+
+.sidebar-user-row:hover {
+    background: var(--panel-hover);
+}

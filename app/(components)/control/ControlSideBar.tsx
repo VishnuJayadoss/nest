@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import "../../layout/header.css";
+import "../../layout/sidebar.css";
 import {
   HiOutlineViewGrid,
   HiOutlineOfficeBuilding,
