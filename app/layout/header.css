@@ -312,6 +312,10 @@
     background: linear-gradient(135deg, rgba(239,68,68,0.2) 0%, rgba(220,38,38,0.1) 100%);
     border: 1px solid rgba(239,68,68,0.3);
 }
+.stat-card-cyan {
+    background: linear-gradient(135deg, rgba(6,182,212,0.2) 0%, rgba(8,145,178,0.1) 100%);
+    border: 1px solid rgba(6,182,212,0.3);
+}
 
 .stat-card-violet,
 .stat-card-blue,
@@ -327,12 +331,14 @@
 .stat-card-green:hover  { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(16,185,129,0.25); }
 .stat-card-orange:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(245,158,11,0.25); }
 .stat-card-red:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(239,68,68,0.25); }
+.stat-card-cyan:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(6,182,212,0.25); }
 
 .stat-icon-violet { background: rgba(139,92,246,0.2); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
 .stat-icon-blue   { background: rgba(59,130,246,0.2);  color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
 .stat-icon-green  { background: rgba(16,185,129,0.2);  color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
 .stat-icon-orange { background: rgba(245,158,11,0.2);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
 .stat-icon-red { background: rgba(239,68,68,0.2);  color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+.stat-icon-cyan { background: rgba(6,182,212,0.2);  color: #22d3ee; border: 1px solid rgba(6,182,212,0.3); }
 
 .stat-change {
     font-size: 11px;
@@ -1081,3 +1087,41 @@
     opacity: 0.85;
     transform: translateY(-1px);
 }
+
+/* ════════════════════════════
+   TENANT MANAGEMENT
+════════════════════════════ */
+
+/* Tenant action cards */
+.tenant-action-card {
+    background: var(--panel-elevated);
+    border: 1px solid var(--panel-border);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.tenant-action-card:hover {
+    transform: translateY(-2px);
+}
+
+.tenant-action-violet:hover { border-color: rgba(139,92,246,0.4); background: rgba(139,92,246,0.06); }
+.tenant-action-blue:hover { border-color: rgba(59,130,246,0.4); background: rgba(59,130,246,0.06); }
+.tenant-action-green:hover { border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.06); }
+.tenant-action-orange:hover { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.06); }
+.tenant-action-cyan:hover { border-color: rgba(6,182,212,0.4); background: rgba(6,182,212,0.06); }
+.tenant-action-red:hover { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.06); }
+
+.tenant-action-icon {
+    transition: transform 0.2s;
+}
+
+.tenant-action-card:hover .tenant-action-icon {
+    transform: scale(1.1);
+}
+
+.tenant-action-icon-violet { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
+.tenant-action-icon-blue { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+.tenant-action-icon-green { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+.tenant-action-icon-orange { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+.tenant-action-icon-cyan { background: rgba(6,182,212,0.15); color: #22d3ee; border: 1px solid rgba(6,182,212,0.25); }
+.tenant-action-icon-red { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
