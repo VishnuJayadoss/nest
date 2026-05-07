@@ -151,6 +151,28 @@
     border-right: 1px solid var(--panel-border);
 }
 
+.sidebar-glass nav {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139, 92, 246, 0.3) transparent;
+}
+
+.sidebar-glass nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-glass nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-glass nav::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.3);
+    border-radius: 3px;
+}
+
+.sidebar-glass nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 92, 246, 0.5);
+}
+
 .sidebar-logo-row {
     height: var(--header-height);
     border-bottom: 1px solid var(--panel-border);
@@ -286,6 +308,10 @@
     background: linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(217,119,6,0.1) 100%);
     border: 1px solid rgba(245,158,11,0.3);
 }
+.stat-card-red {
+    background: linear-gradient(135deg, rgba(239,68,68,0.2) 0%, rgba(220,38,38,0.1) 100%);
+    border: 1px solid rgba(239,68,68,0.3);
+}
 
 .stat-card-violet,
 .stat-card-blue,
@@ -300,11 +326,13 @@
 .stat-card-blue:hover   { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(59,130,246,0.25); }
 .stat-card-green:hover  { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(16,185,129,0.25); }
 .stat-card-orange:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(245,158,11,0.25); }
+.stat-card-red:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(239,68,68,0.25); }
 
 .stat-icon-violet { background: rgba(139,92,246,0.2); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
 .stat-icon-blue   { background: rgba(59,130,246,0.2);  color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
 .stat-icon-green  { background: rgba(16,185,129,0.2);  color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
 .stat-icon-orange { background: rgba(245,158,11,0.2);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+.stat-icon-red { background: rgba(239,68,68,0.2);  color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
 
 .stat-change {
     font-size: 11px;
@@ -371,6 +399,42 @@
     background: rgba(59, 130, 246, 0.15);
     color: #60a5fa;
     border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.project-status.in-progress {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.project-status.open {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.project-status.resolved {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.project-status.failed {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.project-status.paid {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.project-status.trial {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
 /* Progress bar */
