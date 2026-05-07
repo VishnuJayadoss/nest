@@ -6,9 +6,9 @@ import "./productlist.css";
 /* ── PRODUCT DATA ── */
 const products = [
   { title: "ADMINISTRATION", id: "1", link: "/control/dashboard" },
-  { title: "CRM", id: "2", link: "" },
-  { title: "ERP", id: "3", link: "" },
-  { title: "HRM", id: "4", link: "" },
+  { title: "CRM", id: "2", link: "/crm/dashboard" },
+  { title: "ERP", id: "3", link: "/erp/dashboard" },
+  { title: "HRM", id: "4", link: "/hrm/dashboard" },
 ];
 
 export default function ProductList() {

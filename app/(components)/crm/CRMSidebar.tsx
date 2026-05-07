@@ -3,19 +3,147 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import "../../layout/header.css";
-import { HiOutlineViewGrid, HiOutlineShieldCheck, HiOutlineClipboardList, HiOutlineUserGroup, HiOutlineCreditCard, HiOutlineChevronLeft } from "react-icons/hi";
+import {
+    HiOutlineViewGrid,
+    HiOutlineUserAdd,
+    HiOutlineUsers,
+    HiOutlineOfficeBuilding,
+    HiOutlineCurrencyDollar,
+    HiOutlineChartSquareBar,
+    HiOutlineClipboardCheck,
+    HiOutlineCalendar,
+    HiOutlinePhone,
+    HiOutlineMail,
+    HiOutlineChatAlt2,
+    HiOutlineSpeakerphone,
+    HiOutlineTicket,
+    HiOutlineDocumentText,
+    HiOutlinePresentationChartLine,
+    HiOutlineBell,
+    HiOutlineCog,
+    HiOutlineChevronLeft,
+} from "react-icons/hi";
 import Link from "next/link";
 
-const navItems = [
-    { icon: <HiOutlineViewGrid className="w-4 h-4" />, label: "Dashboard", href: "" },
-    { icon: <HiOutlineShieldCheck className="w-4 h-4" />, label: "Leads", href: "" },
-    { icon: <HiOutlineClipboardList className="w-4 h-4" />, label: "Contacts", href: "" },
-    { icon: <HiOutlineUserGroup className="w-4 h-4" />, label: "Customers", href: "" },
-    { icon: <HiOutlineCreditCard className="w-4 h-4" />, label: "Sales", href: "" },
-    { icon: <HiOutlineCreditCard className="w-4 h-4" />, label: "Activities", href: "" },
-    { icon: <HiOutlineCreditCard className="w-4 h-4" />, label: "Marketing", href: "" },
-    { icon: <HiOutlineCreditCard className="w-4 h-4" />, label: "Support", href: "" },
-    { icon: <HiOutlineCreditCard className="w-4 h-4" />, label: "Reports", href: "" },
+const crmSidebarItems = [
+    // Dashboard
+    {
+        icon: <HiOutlineViewGrid className="w-5 h-5" />,
+        label: "Dashboard",
+        href: "/crm/dashboard",
+    },
+
+    // Leads
+    {
+        icon: <HiOutlineUserAdd className="w-5 h-5" />,
+        label: "Leads",
+        href: "/crm/leads",
+    },
+
+    // Contacts
+    {
+        icon: <HiOutlineUsers className="w-5 h-5" />,
+        label: "Contacts",
+        href: "/crm/contacts",
+    },
+
+    // Customers / Companies
+    {
+        icon: <HiOutlineOfficeBuilding className="w-5 h-5" />,
+        label: "Customers",
+        href: "/crm/customers",
+    },
+
+    // Deals / Opportunities
+    {
+        icon: <HiOutlineCurrencyDollar className="w-5 h-5" />,
+        label: "Deals",
+        href: "/crm/deals",
+    },
+
+    // Pipelines
+    {
+        icon: <HiOutlineChartSquareBar className="w-5 h-5" />,
+        label: "Pipelines",
+        href: "/crm/pipelines",
+    },
+
+    // Tasks
+    {
+        icon: <HiOutlineClipboardCheck className="w-5 h-5" />,
+        label: "Tasks",
+        href: "/crm/tasks",
+    },
+
+    // Calendar
+    {
+        icon: <HiOutlineCalendar className="w-5 h-5" />,
+        label: "Calendar",
+        href: "/crm/calendar",
+    },
+
+    // Calls
+    {
+        icon: <HiOutlinePhone className="w-5 h-5" />,
+        label: "Calls",
+        href: "/crm/calls",
+    },
+
+    // Emails
+    {
+        icon: <HiOutlineMail className="w-5 h-5" />,
+        label: "Emails",
+        href: "/crm/emails",
+    },
+
+    // Communication
+    {
+        icon: <HiOutlineChatAlt2 className="w-5 h-5" />,
+        label: "Communication",
+        href: "/crm/communication",
+    },
+
+    // Marketing
+    {
+        icon: <HiOutlineSpeakerphone className="w-5 h-5" />,
+        label: "Marketing",
+        href: "/crm/marketing",
+    },
+
+    // Support Tickets
+    {
+        icon: <HiOutlineTicket className="w-5 h-5" />,
+        label: "Support Tickets",
+        href: "/crm/support",
+    },
+
+    // Quotations / Proposals
+    {
+        icon: <HiOutlineDocumentText className="w-5 h-5" />,
+        label: "Quotations",
+        href: "/crm/quotations",
+    },
+
+    // Reports
+    {
+        icon: <HiOutlinePresentationChartLine className="w-5 h-5" />,
+        label: "Reports",
+        href: "/crm/reports",
+    },
+
+    // Notifications
+    {
+        icon: <HiOutlineBell className="w-5 h-5" />,
+        label: "Notifications",
+        href: "/crm/notifications",
+    },
+
+    // Settings
+    {
+        icon: <HiOutlineCog className="w-5 h-5" />,
+        label: "Settings",
+        href: "/crm/settings",
+    },
 ];
 
 export default function CRMSideBar() {
@@ -54,7 +182,7 @@ export default function CRMSideBar() {
 
             {/* Nav Items */}
             <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-                {navItems.map((item) => (
+                {crmSidebarItems.map((item) => (
                     <Link
                         key={item.label}
                         href={item.href}
