@@ -152,7 +152,7 @@ export default function CRMSideBar() {
     const pathname = usePathname();
 
     return (
-        <aside className={`sidebar-glass relative flex flex-col h-full text-white z-20 transition-all duration-300 ease-in-out shrink-0 ${isOpen ? "w-60" : "w-16"}`}>
+        <aside className={`crm-sidebar relative flex flex-col h-full text-white z-20 transition-all duration-300 ease-in-out shrink-0 ${isOpen ? "w-60" : "w-16"}`}>
 
             {/* Toggle Button */}
             <button
@@ -169,25 +169,24 @@ export default function CRMSideBar() {
             {/* Logo row */}
             <div className="sidebar-logo-row flex items-center gap-3 px-4">
                 <div
-                    className="logo-glow w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ background: "linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)" }}
+                    className="crm-sidebar-logo w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                 >
-                    <span className="text-white font-bold text-lg">N</span>
+                    <span className="text-white font-bold text-lg">C</span>
                 </div>
                 {isOpen && (
                     <span className="text-white font-semibold text-lg truncate" style={{ letterSpacing: "0.04em" }}>
-                        NexaPanel
+                        CRM Module
                     </span>
                 )}
             </div>
 
             {/* Nav Items */}
-            <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+            <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto crm-scrollbar">
                 {crmSidebarItems.map((item) => (
                     <Link
                         key={item.label}
                         href={item.href}
-                        className={`nav-item ${pathname === item.href ? "active" : ""} flex items-center gap-3 px-3 py-2.5 rounded-xl relative group`}
+                        className={`crm-nav-item ${pathname === item.href ? "active" : ""} flex items-center gap-3 px-3 py-2.5 rounded-xl relative group`}
                     >
                         <span className="shrink-0 w-4 flex items-center justify-center">{item.icon}</span>
                         {isOpen && <span className="text-sm font-medium truncate">{item.label}</span>}
@@ -196,17 +195,15 @@ export default function CRMSideBar() {
             </nav>
 
             {/* Footer / User */}
-            <div className="sidebar-footer px-3 py-3">
-                <div className="sidebar-user-row flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer">
-                    <div className="avatar-ring w-8 h-8 shrink-0">
-                        <div className="avatar-inner">
-                            <span className="text-white text-xs font-bold">JD</span>
-                        </div>
+            <div className="sidebar-footer px-3 py-3 border-t border-slate-700">
+                <div className="sidebar-user-row flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer hover:bg-slate-700/30 transition">
+                    <div className="crm-sidebar-logo w-8 h-8 shrink-0 flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">JD</span>
                     </div>
                     {isOpen && (
                         <div className="overflow-hidden">
                             <p className="text-sm font-medium text-slate-100 truncate leading-tight">John Doe</p>
-                            <p className="text-xs truncate leading-tight" style={{ color: "var(--text-faint)" }}>
+                            <p className="text-xs truncate leading-tight" style={{ color: "var(--text-muted)" }}>
                                 john@nexapanel.com
                             </p>
                         </div>

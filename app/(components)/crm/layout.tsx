@@ -1,5 +1,6 @@
 import DashboardHeader from "@/app/layout/Header";
 import CRMSideBar from "./CRMSidebar";
+import './crm.css';
 
 
 export default function CRMLayout({
