@@ -18,9 +18,7 @@ import {
     HiOutlineChatAlt2,
     HiOutlineSpeakerphone,
     HiOutlineTicket,
-    HiOutlineDocumentText,
     HiOutlinePresentationChartLine,
-    HiOutlineBell,
     HiOutlineCog,
     HiOutlineChevronLeft,
 } from "react-icons/hi";
@@ -65,7 +63,7 @@ const crmSidebarItems = [
     // Pipelines
     {
         icon: <HiOutlineChartSquareBar className="w-5 h-5" />,
-        label: "Pipelines",
+        label: "Sales Pipeline",
         href: "/crm/pipelines",
     },
 
@@ -118,25 +116,11 @@ const crmSidebarItems = [
         href: "/crm/support",
     },
 
-    // Quotations / Proposals
-    {
-        icon: <HiOutlineDocumentText className="w-5 h-5" />,
-        label: "Quotations",
-        href: "/crm/quotations",
-    },
-
     // Reports
     {
         icon: <HiOutlinePresentationChartLine className="w-5 h-5" />,
         label: "Reports",
         href: "/crm/reports",
-    },
-
-    // Notifications
-    {
-        icon: <HiOutlineBell className="w-5 h-5" />,
-        label: "Notifications",
-        href: "/crm/notifications",
     },
 
     // Settings
