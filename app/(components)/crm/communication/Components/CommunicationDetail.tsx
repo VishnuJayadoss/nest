@@ -1,547 +1,307 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import "../../crm.css";
 import {
-  HiOutlineBell,
-  HiOutlineCalendar,
-  HiOutlineChartSquareBar,
+  HiOutlineAnnotation,
+  HiOutlineArchive,
+  HiOutlineChartBar,
   HiOutlineChatAlt2,
-  HiOutlineChevronDown,
-  HiOutlineClipboardCheck,
-  HiOutlineCog,
-  HiOutlineDocumentText,
+  HiOutlineClock,
+  HiOutlineDownload,
+  HiOutlineEmojiHappy,
   HiOutlineFilter,
-  HiOutlineMail,
-  HiOutlinePhone,
+  HiOutlineMicrophone,
+  HiOutlinePaperClip,
   HiOutlinePlus,
-  HiOutlinePresentationChartLine,
-  HiOutlineSearch,
-  HiOutlineSpeakerphone,
-  HiOutlineTicket,
+  HiOutlineReply,
+  HiOutlineSparkles,
+  HiOutlineStatusOnline,
+  HiOutlineTag,
+  HiOutlineTrash,
+  HiOutlineUserGroup,
+  HiOutlineX,
 } from "react-icons/hi";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
-type ModuleKey =
-  | "pipelines"
-  | "tasks"
-  | "calendar"
-  | "calls"
-  | "emails"
-  | "communication"
-  | "marketing"
-  | "support"
-  | "quotations"
-  | "reports"
-  | "notifications"
-  | "settings";
+type ChannelType = "WhatsApp" | "Live Chat" | "SMS" | "Internal Chat" | "Client Chat" | "Social Media";
+type ConversationStatus = "Active" | "Pending" | "Resolved" | "Closed" | "Escalated";
+type Priority = "High" | "Medium" | "Low";
 
-type Tone = "primary" | "accent" | "warning" | "danger";
-
-interface Metric {
-  label: string;
-  value: string;
-  sub: string;
-  tone: Tone;
+interface Message {
+  author: string;
+  role: "customer" | "agent" | "internal";
+  time: string;
+  text: string;
+  receipt?: string;
+  reaction?: string;
 }
 
-interface Column {
-  key: string;
-  label: string;
-}
-
-interface Row {
+interface Conversation {
   id: string;
-  title: string;
-  subtitle: string;
-  status: string;
-  owner: string;
-  value: string;
-  due: string;
-  channel: string;
+  contact: string;
+  contactRole: string;
+  company: string;
+  channel: ChannelType;
+  assignedEmployee: string;
+  lastMessage: string;
+  lastActivity: string;
+  status: ConversationStatus;
+  priority: Priority;
+  unread: number;
+  satisfaction: number;
+  attachments: string[];
+  voiceNotes: string[];
+  crmRecords: string[];
+  internalNotes: string;
+  messages: Message[];
 }
 
-interface FeatureConfig {
-  title: string;
-  description: string;
-  action: string;
-  icon: React.ReactNode;
-  filters: string[];
-  columns: Column[];
-  metrics: Metric[];
-  rows: Row[];
-  focus: { label: string; value: string; caption: string }[];
-  activity: { title: string; meta: string; tone: Tone }[];
-}
+const conversations: Conversation[] = [
+  {
+    id: "CNV-7401",
+    contact: "Maya Bennett",
+    contactRole: "Procurement Director",
+    company: "Acme Corp",
+    channel: "WhatsApp",
+    assignedEmployee: "Sarah Johnson",
+    lastMessage: "Can you confirm the rollout timeline before legal signs off?",
+    lastActivity: "2m ago",
+    status: "Active",
+    priority: "High",
+    unread: 3,
+    satisfaction: 94,
+    attachments: ["Security_Addendum.pdf", "Rollout_Timeline.xlsx"],
+    voiceNotes: ["Procurement clarification - 0:42"],
+    crmRecords: ["Deal: Enterprise rollout", "Stage: Procurement", "ARR: $186K"],
+    internalNotes: "Legal is ready. Sarah needs to confirm the phased deployment window.",
+    messages: [
+      { author: "Maya Bennett", role: "customer", time: "09:38 AM", text: "Can you confirm the rollout timeline before legal signs off?", receipt: "Unread" },
+      { author: "Sarah Johnson", role: "agent", time: "09:40 AM", text: "Yes. We can support phase one from June 3 and phase two from June 17.", receipt: "Seen" },
+      { author: "Revenue Ops", role: "internal", time: "09:41 AM", text: "Internal note: include security addendum link in the next reply.", reaction: "+2 reactions" },
+    ],
+  },
+  {
+    id: "CNV-7402",
+    contact: "Noah Sterling",
+    contactRole: "COO",
+    company: "CloudBase",
+    channel: "Live Chat",
+    assignedEmployee: "Emma Davis",
+    lastMessage: "Thanks, this implementation plan answers our main questions.",
+    lastActivity: "12m ago",
+    status: "Resolved",
+    priority: "Medium",
+    unread: 0,
+    satisfaction: 98,
+    attachments: ["Implementation_Plan.xlsx"],
+    voiceNotes: [],
+    crmRecords: ["Account: Expansion", "Health: Green"],
+    internalNotes: "Customer is ready for onboarding kickoff.",
+    messages: [
+      { author: "Noah Sterling", role: "customer", time: "08:56 AM", text: "Can you send the workflow map from the demo?", receipt: "Seen" },
+      { author: "Emma Davis", role: "agent", time: "08:58 AM", text: "Attached the plan and mapped owners for each milestone.", receipt: "Delivered" },
+      { author: "Noah Sterling", role: "customer", time: "09:04 AM", text: "Thanks, this implementation plan answers our main questions.", reaction: "+1 reaction" },
+    ],
+  },
+  {
+    id: "CNV-7403",
+    contact: "Liam Carter",
+    contactRole: "VP Engineering",
+    company: "Global Enterprises",
+    channel: "Client Chat",
+    assignedEmployee: "Priya Shah",
+    lastMessage: "We still see intermittent API latency in the pilot environment.",
+    lastActivity: "18m ago",
+    status: "Escalated",
+    priority: "High",
+    unread: 5,
+    satisfaction: 62,
+    attachments: ["Incident_Summary.pdf", "Latency_Log.csv"],
+    voiceNotes: ["Engineering escalation - 1:14"],
+    crmRecords: ["Ticket: API timeout", "SLA: At risk", "Segment: Enterprise"],
+    internalNotes: "Engineering owner is required before the next customer update.",
+    messages: [
+      { author: "Liam Carter", role: "customer", time: "08:17 AM", text: "We still see intermittent API latency in the pilot environment.", receipt: "Unread" },
+      { author: "Priya Shah", role: "agent", time: "08:19 AM", text: "I escalated this to engineering and will send the next update inside 30 minutes.", receipt: "Delivered" },
+      { author: "Support Lead", role: "internal", time: "08:20 AM", text: "Internal note: attach latest latency log and keep the executive channel warm.", reaction: "+4 reactions" },
+    ],
+  },
+  {
+    id: "CNV-7404",
+    contact: "Ava Morris",
+    contactRole: "Partner Lead",
+    company: "NexaTech",
+    channel: "Internal Chat",
+    assignedEmployee: "Mike Chen",
+    lastMessage: "Partner co-sell owner confirmed for finance vertical.",
+    lastActivity: "41m ago",
+    status: "Pending",
+    priority: "Medium",
+    unread: 1,
+    satisfaction: 86,
+    attachments: ["Partner_Rules.docx"],
+    voiceNotes: [],
+    crmRecords: ["Partner", "Co-sell", "Finance"],
+    internalNotes: "Waiting on final territory split from partner operations.",
+    messages: [
+      { author: "Mike Chen", role: "agent", time: "07:45 AM", text: "Partner co-sell owner confirmed for finance vertical.", receipt: "Seen" },
+      { author: "Ava Morris", role: "customer", time: "07:49 AM", text: "Great. Send the territory split once partner ops approves.", receipt: "Seen" },
+    ],
+  },
+  {
+    id: "CNV-7405",
+    contact: "Olivia Grant",
+    contactRole: "SVP Revenue",
+    company: "Northstar Bank",
+    channel: "Social Media",
+    assignedEmployee: "Nina Patel",
+    lastMessage: "The executive webinar topic is relevant for our revenue team.",
+    lastActivity: "1h ago",
+    status: "Active",
+    priority: "Low",
+    unread: 2,
+    satisfaction: 91,
+    attachments: [],
+    voiceNotes: [],
+    crmRecords: ["Campaign: Exec Webinar", "Segment: Banking"],
+    internalNotes: "Marketing qualified conversation. Route to sales if the webinar reply includes budget timing.",
+    messages: [
+      { author: "Olivia Grant", role: "customer", time: "07:12 AM", text: "The executive webinar topic is relevant for our revenue team.", receipt: "Unread" },
+      { author: "Nina Patel", role: "agent", time: "07:15 AM", text: "I can reserve two seats and send the private roundtable details.", receipt: "Delivered" },
+    ],
+  },
+  {
+    id: "CNV-7406",
+    contact: "Finance Desk",
+    contactRole: "Billing Team",
+    company: "Orbit Retail",
+    channel: "SMS",
+    assignedEmployee: "Amir Khan",
+    lastMessage: "Please use the updated billing mailbox for invoice delivery.",
+    lastActivity: "Yesterday",
+    status: "Closed",
+    priority: "Low",
+    unread: 0,
+    satisfaction: 88,
+    attachments: ["Invoice_3941.pdf"],
+    voiceNotes: [],
+    crmRecords: ["Billing", "Invoice support"],
+    internalNotes: "Closed after finance mailbox was corrected.",
+    messages: [
+      { author: "Finance Desk", role: "customer", time: "Yesterday", text: "Please use the updated billing mailbox for invoice delivery.", receipt: "Seen" },
+      { author: "Amir Khan", role: "agent", time: "Yesterday", text: "Confirmed. The invoice was resent and linked to the billing record.", receipt: "Seen" },
+    ],
+  },
+];
 
-const toneClasses: Record<Tone, string> = {
-  primary: "crm-icon-primary text-blue-400",
-  accent: "crm-icon-accent text-emerald-400",
-  warning: "crm-icon-warning text-yellow-400",
-  danger: "crm-icon-danger text-red-400",
+const kpis = [
+  { label: "Total Conversations", value: "9,842", description: "Unified inbox threads this quarter", trend: "+18.6% volume", progress: 86, icon: <HiOutlineChatAlt2 className="h-5 w-5" />, glow: "bg-blue-500/20" },
+  { label: "Active Chats", value: "284", description: "Live conversations in motion", trend: "+31 today", progress: 72, icon: <HiOutlineStatusOnline className="h-5 w-5" />, glow: "bg-cyan-500/20" },
+  { label: "Unread Messages", value: "1,126", description: "Awaiting team review", trend: "-14.2% backlog", progress: 48, icon: <HiOutlineAnnotation className="h-5 w-5" />, glow: "bg-amber-500/20" },
+  { label: "Response Rate", value: "96.4%", description: "Within SLA across channels", trend: "+2.8 pts", progress: 96, icon: <HiOutlineReply className="h-5 w-5" />, glow: "bg-emerald-500/20" },
+  { label: "Avg Response Time", value: "4m 18s", description: "Median first response", trend: "-38s faster", progress: 68, icon: <HiOutlineClock className="h-5 w-5" />, glow: "bg-purple-500/20" },
+  { label: "Resolved Conversations", value: "6,318", description: "Closed with customer outcome", trend: "+11.9% resolved", progress: 79, icon: <HiOutlineSparkles className="h-5 w-5" />, glow: "bg-fuchsia-500/20" },
+];
+
+const statusStyle: Record<ConversationStatus, string> = {
+  Active: "from-blue-500/25 to-cyan-500/10 text-blue-200 border-blue-400/30",
+  Pending: "from-yellow-500/25 to-amber-500/10 text-yellow-200 border-yellow-400/30",
+  Resolved: "from-emerald-500/25 to-green-500/10 text-emerald-200 border-emerald-400/30",
+  Closed: "from-slate-500/25 to-slate-600/10 text-slate-300 border-slate-400/25",
+  Escalated: "from-red-500/25 to-rose-500/10 text-red-200 border-red-400/30",
 };
 
-const badgeClasses: Record<string, string> = {
-  Active: "bg-green-500/20 text-green-400 border border-green-500/30",
-  Scheduled: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-  Draft: "bg-slate-500/20 text-slate-400 border border-slate-500/30",
-  Pending: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
-  Review: "bg-purple-500/20 text-purple-400 border border-purple-500/30",
-  Sent: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-  Completed: "bg-green-500/20 text-green-400 border border-green-500/30",
-  Overdue: "bg-red-500/20 text-red-400 border border-red-500/30",
-  Open: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-  Escalated: "bg-red-500/20 text-red-400 border border-red-500/30",
-  Won: "bg-green-500/20 text-green-400 border border-green-500/30",
-  Paused: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
-  Enabled: "bg-green-500/20 text-green-400 border border-green-500/30",
+const priorityStyle: Record<Priority, string> = {
+  High: "bg-red-500/15 text-red-300 border-red-500/30",
+  Medium: "bg-yellow-500/15 text-yellow-300 border-yellow-500/30",
+  Low: "bg-slate-500/15 text-slate-300 border-slate-500/30",
 };
 
-const configs: Record<ModuleKey, FeatureConfig> = {
-  pipelines: {
-    title: "Pipelines",
-    description: "Design, monitor, and tune every sales pipeline stage",
-    action: "Add Pipeline",
-    icon: <HiOutlineChartSquareBar className="h-6 w-6" />,
-    filters: ["All", "Active", "Paused", "Review"],
-    columns: [
-      { key: "title", label: "Pipeline" },
-      { key: "status", label: "Status" },
-      { key: "value", label: "Value" },
-      { key: "owner", label: "Owner" },
-      { key: "due", label: "Review Date" },
-    ],
-    metrics: [
-      { label: "Active Pipelines", value: "6", sub: "Across sales teams", tone: "primary" },
-      { label: "Pipeline Value", value: "$1.42M", sub: "Open opportunity value", tone: "accent" },
-      { label: "Avg Velocity", value: "31d", sub: "Lead to close", tone: "warning" },
-      { label: "Needs Review", value: "2", sub: "Stage rules stale", tone: "danger" },
-    ],
-    rows: [
-      { id: "P-101", title: "Enterprise Sales", subtitle: "Discovery > Proposal > Contract", status: "Active", value: "$820K", owner: "Sarah J.", due: "2024-08-12", channel: "Direct" },
-      { id: "P-102", title: "SMB Growth", subtitle: "Trial > Upgrade > Annual", status: "Active", value: "$240K", owner: "Mike C.", due: "2024-08-20", channel: "Inbound" },
-      { id: "P-103", title: "Partner Co-sell", subtitle: "Partner intro > Joint proposal", status: "Review", value: "$310K", owner: "Emma D.", due: "2024-08-02", channel: "Partner" },
-      { id: "P-104", title: "Expansion Motion", subtitle: "Usage signal > Success plan", status: "Paused", value: "$95K", owner: "John W.", due: "2024-09-01", channel: "Customer" },
-    ],
-    focus: [
-      { label: "Best Stage", value: "Contract", caption: "86% conversion" },
-      { label: "Slowest Stage", value: "Proposal", caption: "12 day average" },
-      { label: "Top Owner", value: "Sarah J.", caption: "$820K managed" },
-    ],
-    activity: [
-      { title: "Enterprise Sales stage rule updated", meta: "2h ago", tone: "primary" },
-      { title: "Partner Co-sell marked for review", meta: "Yesterday", tone: "warning" },
-      { title: "Expansion Motion paused", meta: "Jun 28", tone: "danger" },
-    ],
-  },
-  tasks: {
-    title: "Tasks",
-    description: "Prioritize follow-ups, handoffs, and sales commitments",
-    action: "Add Task",
-    icon: <HiOutlineClipboardCheck className="h-6 w-6" />,
-    filters: ["All", "Open", "Completed", "Overdue"],
-    columns: [
-      { key: "title", label: "Task" },
-      { key: "status", label: "Status" },
-      { key: "owner", label: "Assignee" },
-      { key: "channel", label: "Type" },
-      { key: "due", label: "Due" },
-    ],
-    metrics: [
-      { label: "Open Tasks", value: "28", sub: "Assigned this week", tone: "primary" },
-      { label: "Completed", value: "64", sub: "Last 7 days", tone: "accent" },
-      { label: "Due Today", value: "9", sub: "Needs focus", tone: "warning" },
-      { label: "Overdue", value: "3", sub: "Past SLA", tone: "danger" },
-    ],
-    rows: [
-      { id: "T-201", title: "Send revised proposal", subtitle: "Acme Corp enterprise rollout", status: "Open", value: "High", owner: "Sarah J.", due: "Today", channel: "Proposal" },
-      { id: "T-202", title: "Schedule technical demo", subtitle: "CloudBase operations suite", status: "Open", value: "Medium", owner: "Emma D.", due: "Tomorrow", channel: "Meeting" },
-      { id: "T-203", title: "Update lost reason", subtitle: "InfoSys finance review", status: "Overdue", value: "Low", owner: "John W.", due: "Yesterday", channel: "Admin" },
-      { id: "T-204", title: "Confirm onboarding owner", subtitle: "StartUp Ventures upgrade", status: "Completed", value: "High", owner: "Sarah J.", due: "Jun 28", channel: "Handoff" },
-    ],
-    focus: [
-      { label: "Today", value: "9", caption: "Tasks due" },
-      { label: "High Priority", value: "11", caption: "Open items" },
-      { label: "SLA Risk", value: "3", caption: "Overdue tasks" },
-    ],
-    activity: [
-      { title: "Sarah completed onboarding handoff", meta: "35m ago", tone: "accent" },
-      { title: "John has an overdue admin task", meta: "1h ago", tone: "danger" },
-      { title: "Emma added a demo follow-up", meta: "3h ago", tone: "primary" },
-    ],
-  },
-  calendar: {
-    title: "Calendar",
-    description: "Coordinate meetings, demos, renewals, and sales events",
-    action: "Add Event",
-    icon: <HiOutlineCalendar className="h-6 w-6" />,
-    filters: ["All", "Scheduled", "Completed", "Pending"],
-    columns: [
-      { key: "title", label: "Event" },
-      { key: "status", label: "Status" },
-      { key: "owner", label: "Host" },
-      { key: "channel", label: "Channel" },
-      { key: "due", label: "Time" },
-    ],
-    metrics: [
-      { label: "Today", value: "7", sub: "Calendar events", tone: "primary" },
-      { label: "Demos", value: "4", sub: "Product sessions", tone: "accent" },
-      { label: "Renewals", value: "3", sub: "This week", tone: "warning" },
-      { label: "Conflicts", value: "1", sub: "Needs reschedule", tone: "danger" },
-    ],
-    rows: [
-      { id: "E-301", title: "Acme legal review", subtitle: "Contract approval call", status: "Scheduled", value: "45m", owner: "Sarah J.", due: "Today 2:00 PM", channel: "Google Meet" },
-      { id: "E-302", title: "CloudBase product demo", subtitle: "Operations suite walkthrough", status: "Scheduled", value: "60m", owner: "Emma D.", due: "Tomorrow 11:00 AM", channel: "Zoom" },
-      { id: "E-303", title: "NexaTech partner sync", subtitle: "Scope confirmation", status: "Pending", value: "30m", owner: "Mike C.", due: "Fri 4:00 PM", channel: "Teams" },
-      { id: "E-304", title: "Startup handoff", subtitle: "Customer success intro", status: "Completed", value: "30m", owner: "Sarah J.", due: "Jun 28", channel: "Zoom" },
-    ],
-    focus: [
-      { label: "Next Event", value: "2:00 PM", caption: "Acme legal review" },
-      { label: "Free Slots", value: "5", caption: "This week" },
-      { label: "Avg Duration", value: "42m", caption: "Sales meetings" },
-    ],
-    activity: [
-      { title: "CloudBase demo accepted", meta: "20m ago", tone: "accent" },
-      { title: "NexaTech sync awaiting reply", meta: "2h ago", tone: "warning" },
-      { title: "One calendar conflict found", meta: "Today", tone: "danger" },
-    ],
-  },
-  calls: {
-    title: "Calls",
-    description: "Log call outcomes, callbacks, and rep activity",
-    action: "Log Call",
-    icon: <HiOutlinePhone className="h-6 w-6" />,
-    filters: ["All", "Completed", "Scheduled", "Pending"],
-    columns: [
-      { key: "title", label: "Call" },
-      { key: "status", label: "Outcome" },
-      { key: "owner", label: "Rep" },
-      { key: "value", label: "Duration" },
-      { key: "due", label: "Time" },
-    ],
-    metrics: [
-      { label: "Calls Today", value: "42", sub: "Team total", tone: "primary" },
-      { label: "Connected", value: "26", sub: "62% connect rate", tone: "accent" },
-      { label: "Callbacks", value: "8", sub: "Scheduled next", tone: "warning" },
-      { label: "Missed", value: "4", sub: "Needs retry", tone: "danger" },
-    ],
-    rows: [
-      { id: "C-401", title: "Acme procurement", subtitle: "Pricing clarification", status: "Completed", value: "18m", owner: "Sarah J.", due: "10:20 AM", channel: "Outbound" },
-      { id: "C-402", title: "DataFlow expansion", subtitle: "Department rollout", status: "Scheduled", value: "30m", owner: "Emma D.", due: "2:30 PM", channel: "Discovery" },
-      { id: "C-403", title: "Global Enterprises", subtitle: "Budget owner callback", status: "Pending", value: "15m", owner: "John W.", due: "Tomorrow", channel: "Callback" },
-      { id: "C-404", title: "NexaTech scope review", subtitle: "Support requirements", status: "Completed", value: "24m", owner: "Mike C.", due: "Yesterday", channel: "Partner" },
-    ],
-    focus: [
-      { label: "Connect Rate", value: "62%", caption: "+8% this week" },
-      { label: "Avg Duration", value: "21m", caption: "Connected calls" },
-      { label: "Best Rep", value: "Sarah J.", caption: "14 connected" },
-    ],
-    activity: [
-      { title: "Acme call logged with next step", meta: "18m ago", tone: "accent" },
-      { title: "Global callback scheduled", meta: "1h ago", tone: "warning" },
-      { title: "Four missed calls need retry", meta: "Today", tone: "danger" },
-    ],
-  },
-  emails: {
-    title: "Emails",
-    description: "Track outbound sequences, replies, and email performance",
-    action: "Compose Email",
-    icon: <HiOutlineMail className="h-6 w-6" />,
-    filters: ["All", "Sent", "Scheduled", "Draft"],
-    columns: [
-      { key: "title", label: "Email" },
-      { key: "status", label: "Status" },
-      { key: "owner", label: "Sender" },
-      { key: "value", label: "Open Rate" },
-      { key: "due", label: "Sent" },
-    ],
-    metrics: [
-      { label: "Sent Today", value: "186", sub: "Across all reps", tone: "primary" },
-      { label: "Reply Rate", value: "18%", sub: "+3.1% vs last week", tone: "accent" },
-      { label: "Scheduled", value: "34", sub: "Queued messages", tone: "warning" },
-      { label: "Drafts", value: "11", sub: "Awaiting review", tone: "danger" },
-    ],
-    rows: [
-      { id: "M-501", title: "Revised Acme proposal", subtitle: "Security addendum attached", status: "Sent", value: "74%", owner: "Sarah J.", due: "Today", channel: "Deal" },
-      { id: "M-502", title: "CloudBase demo recap", subtitle: "Operations suite follow-up", status: "Scheduled", value: "N/A", owner: "Emma D.", due: "Tomorrow", channel: "Sequence" },
-      { id: "M-503", title: "Partner co-sell intro", subtitle: "NexaTech scope note", status: "Draft", value: "N/A", owner: "Mike C.", due: "Today", channel: "Partner" },
-      { id: "M-504", title: "Renewal reminder", subtitle: "Customer health outreach", status: "Sent", value: "61%", owner: "John W.", due: "Jun 27", channel: "Renewal" },
-    ],
-    focus: [
-      { label: "Open Rate", value: "64%", caption: "Last 7 days" },
-      { label: "Replies", value: "34", caption: "This week" },
-      { label: "Best Template", value: "Demo Recap", caption: "24% reply rate" },
-    ],
-    activity: [
-      { title: "Acme opened revised proposal", meta: "9m ago", tone: "accent" },
-      { title: "NexaTech draft needs approval", meta: "1h ago", tone: "warning" },
-      { title: "Renewal reminder sequence sent", meta: "Yesterday", tone: "primary" },
-    ],
-  },
-  communication: {
-    title: "Communication",
-    description: "Unify chat, SMS, meetings, and internal sales threads",
-    action: "New Thread",
-    icon: <HiOutlineChatAlt2 className="h-6 w-6" />,
-    filters: ["All", "Open", "Pending", "Completed"],
-    columns: [
-      { key: "title", label: "Thread" },
-      { key: "status", label: "Status" },
-      { key: "owner", label: "Owner" },
-      { key: "channel", label: "Channel" },
-      { key: "due", label: "Last Update" },
-    ],
-    metrics: [
-      { label: "Open Threads", value: "19", sub: "Across channels", tone: "primary" },
-      { label: "SLA Met", value: "94%", sub: "Response compliance", tone: "accent" },
-      { label: "Waiting", value: "6", sub: "Customer response", tone: "warning" },
-      { label: "Escalated", value: "2", sub: "Manager attention", tone: "danger" },
-    ],
-    rows: [
-      { id: "TH-601", title: "Acme legal clarifications", subtitle: "Contract thread", status: "Open", value: "High", owner: "Sarah J.", due: "12m ago", channel: "Email" },
-      { id: "TH-602", title: "CloudBase implementation chat", subtitle: "Technical questions", status: "Pending", value: "Medium", owner: "Emma D.", due: "1h ago", channel: "Slack" },
-      { id: "TH-603", title: "Global pilot requirements", subtitle: "Discovery notes", status: "Open", value: "Medium", owner: "John W.", due: "3h ago", channel: "SMS" },
-      { id: "TH-604", title: "Startup CS handoff", subtitle: "Closed-loop handoff", status: "Completed", value: "Low", owner: "Sarah J.", due: "Yesterday", channel: "Internal" },
-    ],
-    focus: [
-      { label: "Median Reply", value: "18m", caption: "Across channels" },
-      { label: "Top Channel", value: "Email", caption: "52% volume" },
-      { label: "Escalations", value: "2", caption: "Need owner" },
-    ],
-    activity: [
-      { title: "Acme thread assigned to Sarah", meta: "12m ago", tone: "primary" },
-      { title: "CloudBase waiting on customer", meta: "1h ago", tone: "warning" },
-      { title: "Two escalations still open", meta: "Today", tone: "danger" },
-    ],
-  },
-  marketing: {
-    title: "Marketing",
-    description: "Plan campaigns, measure conversion, and manage audiences",
-    action: "Create Campaign",
-    icon: <HiOutlineSpeakerphone className="h-6 w-6" />,
-    filters: ["All", "Active", "Scheduled", "Draft"],
-    columns: [
-      { key: "title", label: "Campaign" },
-      { key: "status", label: "Status" },
-      { key: "value", label: "Leads" },
-      { key: "owner", label: "Owner" },
-      { key: "due", label: "Launch" },
-    ],
-    metrics: [
-      { label: "Active Campaigns", value: "8", sub: "Live right now", tone: "primary" },
-      { label: "New Leads", value: "412", sub: "This month", tone: "accent" },
-      { label: "Avg CPL", value: "$38", sub: "-11% vs target", tone: "warning" },
-      { label: "Drafts", value: "5", sub: "Need content", tone: "danger" },
-    ],
-    rows: [
-      { id: "MK-701", title: "Enterprise security webinar", subtitle: "ABM target list", status: "Active", value: "146", owner: "Nina P.", due: "Live", channel: "Webinar" },
-      { id: "MK-702", title: "Q3 renewal nurture", subtitle: "Customer expansion", status: "Scheduled", value: "89", owner: "Omar R.", due: "Jul 10", channel: "Email" },
-      { id: "MK-703", title: "Partner marketplace launch", subtitle: "Co-marketing", status: "Draft", value: "0", owner: "Lena K.", due: "Jul 18", channel: "Partner" },
-      { id: "MK-704", title: "Startup founder guide", subtitle: "Inbound asset", status: "Active", value: "177", owner: "Nina P.", due: "Live", channel: "Content" },
-    ],
-    focus: [
-      { label: "Best Campaign", value: "Webinar", caption: "146 leads" },
-      { label: "MQL Rate", value: "31%", caption: "+4.2% this month" },
-      { label: "Spend", value: "$15.6K", caption: "Month to date" },
-    ],
-    activity: [
-      { title: "Webinar crossed 100 registrations", meta: "45m ago", tone: "accent" },
-      { title: "Partner launch draft assigned", meta: "2h ago", tone: "warning" },
-      { title: "Renewal nurture scheduled", meta: "Yesterday", tone: "primary" },
-    ],
-  },
-  support: {
-    title: "Support Tickets",
-    description: "Monitor customer issues, escalation risk, and SLA health",
-    action: "New Ticket",
-    icon: <HiOutlineTicket className="h-6 w-6" />,
-    filters: ["All", "Open", "Pending", "Escalated"],
-    columns: [
-      { key: "title", label: "Ticket" },
-      { key: "status", label: "Status" },
-      { key: "owner", label: "Agent" },
-      { key: "value", label: "Priority" },
-      { key: "due", label: "SLA" },
-    ],
-    metrics: [
-      { label: "Open Tickets", value: "23", sub: "Customer issues", tone: "primary" },
-      { label: "Resolved", value: "71", sub: "Last 7 days", tone: "accent" },
-      { label: "SLA Risk", value: "5", sub: "Due soon", tone: "warning" },
-      { label: "Escalated", value: "3", sub: "Critical accounts", tone: "danger" },
-    ],
-    rows: [
-      { id: "S-801", title: "Acme SSO mapping", subtitle: "Enterprise account", status: "Open", value: "High", owner: "Priya S.", due: "2h left", channel: "Portal" },
-      { id: "S-802", title: "DataFlow report export", subtitle: "Analytics module", status: "Pending", value: "Medium", owner: "Leon M.", due: "5h left", channel: "Email" },
-      { id: "S-803", title: "Global API timeout", subtitle: "Pilot integration", status: "Escalated", value: "Critical", owner: "Priya S.", due: "30m left", channel: "Phone" },
-      { id: "S-804", title: "Startup invoice question", subtitle: "Billing support", status: "Open", value: "Low", owner: "Amir K.", due: "Tomorrow", channel: "Chat" },
-    ],
-    focus: [
-      { label: "SLA Health", value: "91%", caption: "This week" },
-      { label: "Median Resolve", value: "6h", caption: "All queues" },
-      { label: "Critical", value: "1", caption: "Global API timeout" },
-    ],
-    activity: [
-      { title: "Global API ticket escalated", meta: "14m ago", tone: "danger" },
-      { title: "Acme SSO assigned to Priya", meta: "42m ago", tone: "primary" },
-      { title: "DataFlow waiting on customer", meta: "2h ago", tone: "warning" },
-    ],
-  },
-  quotations: {
-    title: "Quotations",
-    description: "Create proposals, quotes, approvals, and customer-ready offers",
-    action: "Create Quote",
-    icon: <HiOutlineDocumentText className="h-6 w-6" />,
-    filters: ["All", "Draft", "Sent", "Won"],
-    columns: [
-      { key: "title", label: "Quotation" },
-      { key: "status", label: "Status" },
-      { key: "value", label: "Amount" },
-      { key: "owner", label: "Owner" },
-      { key: "due", label: "Valid Until" },
-    ],
-    metrics: [
-      { label: "Quotes Sent", value: "17", sub: "This month", tone: "primary" },
-      { label: "Accepted", value: "$218K", sub: "Closed value", tone: "accent" },
-      { label: "Awaiting Approval", value: "6", sub: "Manager review", tone: "warning" },
-      { label: "Expiring", value: "4", sub: "Next 7 days", tone: "danger" },
-    ],
-    rows: [
-      { id: "Q-901", title: "Acme enterprise proposal", subtitle: "Security and implementation", status: "Sent", value: "$86,000", owner: "Sarah J.", due: "2024-08-15", channel: "PDF" },
-      { id: "Q-902", title: "CloudBase operations suite", subtitle: "Annual subscription", status: "Draft", value: "$73,000", owner: "Emma D.", due: "2024-08-02", channel: "Doc" },
-      { id: "Q-903", title: "DataFlow expansion order", subtitle: "Two departments", status: "Won", value: "$124,000", owner: "Emma D.", due: "2024-07-24", channel: "PDF" },
-      { id: "Q-904", title: "NexaTech managed services", subtitle: "Partner bundle", status: "Review", value: "$27,000", owner: "Mike C.", due: "2024-09-19", channel: "Doc" },
-    ],
-    focus: [
-      { label: "Approval Queue", value: "6", caption: "Need manager review" },
-      { label: "Avg Discount", value: "8.5%", caption: "Current quotes" },
-      { label: "Close Rate", value: "41%", caption: "From sent quotes" },
-    ],
-    activity: [
-      { title: "Acme proposal viewed twice", meta: "11m ago", tone: "accent" },
-      { title: "NexaTech quote needs approval", meta: "1h ago", tone: "warning" },
-      { title: "DataFlow quote accepted", meta: "Yesterday", tone: "accent" },
-    ],
-  },
-  reports: {
-    title: "Reports",
-    description: "Build sales, activity, pipeline, and revenue reporting packs",
-    action: "Generate Report",
-    icon: <HiOutlinePresentationChartLine className="h-6 w-6" />,
-    filters: ["All", "Completed", "Scheduled", "Draft"],
-    columns: [
-      { key: "title", label: "Report" },
-      { key: "status", label: "Status" },
-      { key: "owner", label: "Owner" },
-      { key: "channel", label: "Format" },
-      { key: "due", label: "Run Date" },
-    ],
-    metrics: [
-      { label: "Reports", value: "24", sub: "Saved reports", tone: "primary" },
-      { label: "Scheduled", value: "9", sub: "Recurring exports", tone: "accent" },
-      { label: "Dashboards", value: "6", sub: "Live views", tone: "warning" },
-      { label: "Failed Runs", value: "1", sub: "Needs retry", tone: "danger" },
-    ],
-    rows: [
-      { id: "R-1001", title: "Pipeline forecast", subtitle: "Weighted revenue by owner", status: "Completed", value: "2.4 MB", owner: "Sarah J.", due: "Today", channel: "PDF" },
-      { id: "R-1002", title: "Activity scorecard", subtitle: "Calls, emails, tasks", status: "Scheduled", value: "Live", owner: "Mike C.", due: "Monday", channel: "Dashboard" },
-      { id: "R-1003", title: "Campaign attribution", subtitle: "Lead source conversion", status: "Draft", value: "N/A", owner: "Nina P.", due: "Jul 12", channel: "CSV" },
-      { id: "R-1004", title: "Renewal risk report", subtitle: "Health and upcoming renewals", status: "Completed", value: "1.8 MB", owner: "Emma D.", due: "Yesterday", channel: "Excel" },
-    ],
-    focus: [
-      { label: "Next Run", value: "Monday", caption: "Activity scorecard" },
-      { label: "Most Viewed", value: "Forecast", caption: "83 views" },
-      { label: "Export Queue", value: "2", caption: "In progress" },
-    ],
-    activity: [
-      { title: "Pipeline forecast generated", meta: "30m ago", tone: "accent" },
-      { title: "Campaign attribution saved as draft", meta: "2h ago", tone: "warning" },
-      { title: "One scheduled report failed", meta: "Yesterday", tone: "danger" },
-    ],
-  },
-  notifications: {
-    title: "Notifications",
-    description: "Control alerts for deals, tasks, support, and customer events",
-    action: "Create Rule",
-    icon: <HiOutlineBell className="h-6 w-6" />,
-    filters: ["All", "Enabled", "Paused", "Pending"],
-    columns: [
-      { key: "title", label: "Notification" },
-      { key: "status", label: "Status" },
-      { key: "owner", label: "Audience" },
-      { key: "channel", label: "Channel" },
-      { key: "due", label: "Last Triggered" },
-    ],
-    metrics: [
-      { label: "Rules Enabled", value: "18", sub: "Active automations", tone: "primary" },
-      { label: "Delivered", value: "1.2K", sub: "This month", tone: "accent" },
-      { label: "Muted", value: "5", sub: "User controlled", tone: "warning" },
-      { label: "Failed", value: "2", sub: "Webhook errors", tone: "danger" },
-    ],
-    rows: [
-      { id: "N-1101", title: "High value deal changed", subtitle: "Value above $50K", status: "Enabled", value: "High", owner: "Sales Managers", due: "12m ago", channel: "In-app" },
-      { id: "N-1102", title: "Task overdue reminder", subtitle: "Past due by 24 hours", status: "Enabled", value: "Medium", owner: "Task Owners", due: "1h ago", channel: "Email" },
-      { id: "N-1103", title: "SLA breach warning", subtitle: "Support ticket near breach", status: "Enabled", value: "Critical", owner: "Support Leads", due: "35m ago", channel: "Slack" },
-      { id: "N-1104", title: "Weekly digest", subtitle: "Pipeline and activity summary", status: "Paused", value: "Low", owner: "All CRM Users", due: "Friday", channel: "Email" },
-    ],
-    focus: [
-      { label: "Delivery Rate", value: "99.1%", caption: "Last 30 days" },
-      { label: "Top Alert", value: "Overdue", caption: "312 triggers" },
-      { label: "Webhook Errors", value: "2", caption: "Needs retry" },
-    ],
-    activity: [
-      { title: "SLA warning sent to support leads", meta: "35m ago", tone: "danger" },
-      { title: "Deal change alert delivered", meta: "12m ago", tone: "primary" },
-      { title: "Weekly digest paused", meta: "Yesterday", tone: "warning" },
-    ],
-  },
-  settings: {
-    title: "Settings",
-    description: "Configure CRM teams, permissions, stages, and automation rules",
-    action: "Add Setting",
-    icon: <HiOutlineCog className="h-6 w-6" />,
-    filters: ["All", "Enabled", "Review", "Pending"],
-    columns: [
-      { key: "title", label: "Setting" },
-      { key: "status", label: "Status" },
-      { key: "owner", label: "Owner" },
-      { key: "channel", label: "Area" },
-      { key: "due", label: "Updated" },
-    ],
-    metrics: [
-      { label: "Users", value: "42", sub: "CRM seats", tone: "primary" },
-      { label: "Automations", value: "16", sub: "Enabled rules", tone: "accent" },
-      { label: "Pending Reviews", value: "4", sub: "Admin approval", tone: "warning" },
-      { label: "Access Risks", value: "1", sub: "Permission audit", tone: "danger" },
-    ],
-    rows: [
-      { id: "SET-1201", title: "Sales stage definitions", subtitle: "Pipeline rules and probability", status: "Enabled", value: "Core", owner: "Admin", due: "Today", channel: "Pipeline" },
-      { id: "SET-1202", title: "Lead assignment routing", subtitle: "Round-robin by region", status: "Review", value: "High", owner: "Ops", due: "Yesterday", channel: "Automation" },
-      { id: "SET-1203", title: "Notification preferences", subtitle: "Default CRM alert rules", status: "Enabled", value: "Medium", owner: "Admin", due: "Jun 27", channel: "Alerts" },
-      { id: "SET-1204", title: "Role permission audit", subtitle: "Manager and rep visibility", status: "Pending", value: "High", owner: "Security", due: "Jul 02", channel: "Access" },
-    ],
-    focus: [
-      { label: "Default Pipeline", value: "Enterprise", caption: "Used by 18 reps" },
-      { label: "Automation Health", value: "97%", caption: "Successful runs" },
-      { label: "Audit Item", value: "1", caption: "Permission review" },
-    ],
-    activity: [
-      { title: "Stage definitions updated", meta: "Today", tone: "accent" },
-      { title: "Assignment routing needs review", meta: "Yesterday", tone: "warning" },
-      { title: "Permission audit flagged one risk", meta: "Jun 27", tone: "danger" },
-    ],
-  },
-};
+const responseData = [
+  { day: "Mon", response: 6.2, resolution: 72, volume: 760, csat: 86 },
+  { day: "Tue", response: 5.4, resolution: 76, volume: 830, csat: 88 },
+  { day: "Wed", response: 4.9, resolution: 81, volume: 910, csat: 91 },
+  { day: "Thu", response: 4.3, resolution: 84, volume: 870, csat: 90 },
+  { day: "Fri", response: 4.1, resolution: 88, volume: 940, csat: 93 },
+  { day: "Sat", response: 7.8, resolution: 69, volume: 420, csat: 84 },
+  { day: "Sun", response: 8.4, resolution: 66, volume: 370, csat: 82 },
+];
 
-function MetricCard({ metric }: { metric: Metric }) {
+const teamData = [
+  { name: "Sarah", active: 34, resolved: 126 },
+  { name: "Emma", active: 28, resolved: 118 },
+  { name: "Priya", active: 41, resolved: 104 },
+  { name: "Mike", active: 19, resolved: 92 },
+  { name: "Nina", active: 25, resolved: 88 },
+];
+
+const sidePanels = [
+  { title: "Active Conversations", items: ["284 live threads", "37 enterprise accounts online", "18 channels updating now"] },
+  { title: "Pending Replies", items: ["112 customer replies due", "24 high-priority waits", "8 idle beyond SLA"] },
+  { title: "Team Online Status", items: ["Sarah online", "Emma online", "Priya in escalation queue"] },
+  { title: "Recent Activities", items: ["Acme asked rollout question", "CloudBase marked resolved", "Northstar engaged from social"] },
+  { title: "Escalation Alerts", items: ["Global API latency needs owner", "3 support chats nearing SLA", "1 executive thread active"] },
+];
+
+const featureCards = [
+  { title: "Unified inbox", icon: <HiOutlineChatAlt2 className="h-5 w-5" /> },
+  { title: "Multi-channel messaging", icon: <HiOutlineAnnotation className="h-5 w-5" /> },
+  { title: "Internal team chat", icon: <HiOutlineUserGroup className="h-5 w-5" /> },
+  { title: "Conversation tagging", icon: <HiOutlineTag className="h-5 w-5" /> },
+  { title: "Auto assignment", icon: <HiOutlineSparkles className="h-5 w-5" /> },
+  { title: "Chat history", icon: <HiOutlineClock className="h-5 w-5" /> },
+  { title: "CRM linked conversations", icon: <HiOutlineStatusOnline className="h-5 w-5" /> },
+  { title: "Real-time updates", icon: <HiOutlineChartBar className="h-5 w-5" /> },
+];
+
+function ChartTip({ active, payload, label }: { active?: boolean; payload?: Array<{ color: string; name: string; value: number | string }>; label?: string }) {
+  if (!active || !payload?.length) return null;
   return (
-    <div className="crm-card rounded-2xl p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm text-slate-400">{metric.label}</p>
-          <p className="mt-2 text-3xl font-bold text-white">{metric.value}</p>
-          <p className="mt-1 text-xs text-slate-500">{metric.sub}</p>
+    <div className="rounded-xl border border-slate-700 bg-slate-950/95 px-3 py-2 text-xs text-white shadow-2xl">
+      {label && <p className="mb-1 text-slate-400">{label}</p>}
+      {payload.map((item) => <p key={item.name} style={{ color: item.color }}>{item.name}: {item.value}</p>)}
+    </div>
+  );
+}
+
+function KpiCard({ label, value, description, trend, progress, icon, glow }: {
+  label: string;
+  value: string;
+  description: string;
+  trend: string;
+  progress: number;
+  icon: ReactNode;
+  glow: string;
+}) {
+  return (
+    <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/70 p-5 shadow-xl shadow-blue-950/20 backdrop-blur transition duration-300 hover:-translate-y-0.5 hover:border-blue-400/40">
+      <div className={`absolute -right-8 -top-8 h-24 w-24 rounded-full blur-3xl ${glow}`} />
+      <div className="relative flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm text-slate-400">{label}</p>
+          <p className="mt-2 text-3xl font-bold text-white">{value}</p>
+          <p className="mt-1 text-xs text-slate-500">{description}</p>
+          <div className="mt-4 h-1.5 rounded-full bg-slate-800">
+            <div className="h-1.5 rounded-full bg-linear-to-r from-blue-500 to-purple-500" style={{ width: `${progress}%` }} />
+          </div>
+          <p className="mt-3 text-xs font-semibold text-emerald-300">{trend}</p>
         </div>
-        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${toneClasses[metric.tone]}`}>
-          <span className="h-2.5 w-2.5 rounded-full bg-current" />
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-blue-300">
+          {icon}
         </div>
       </div>
     </div>
@@ -549,157 +309,377 @@ function MetricCard({ metric }: { metric: Metric }) {
 }
 
 export default function CommunicationDetail() {
-  const config = configs.communication;
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("All");
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(conversations[0]);
+  const [showChat, setShowChat] = useState(false);
+  const [channelFilter, setChannelFilter] = useState<string>("All");
+  const [employeeFilter, setEmployeeFilter] = useState<string>("All");
+  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [priorityFilter, setPriorityFilter] = useState<string>("All");
+  const [dateRange, setDateRange] = useState("");
 
-  const filteredRows = useMemo(() => {
-    const query = search.toLowerCase();
-    return config.rows.filter((row) => {
-      const matchesSearch = [row.title, row.subtitle, row.status, row.owner, row.channel]
-        .some((value) => value.toLowerCase().includes(query));
-      const matchesFilter = filter === "All" || row.status === filter;
-      return matchesSearch && matchesFilter;
-    });
-  }, [config.rows, filter, search]);
+  const employees = useMemo(() => Array.from(new Set(conversations.map((conversation) => conversation.assignedEmployee))), []);
+
+  const filteredConversations = conversations.filter((conversation) => {
+    const matchesChannel = channelFilter === "All" || conversation.channel === channelFilter;
+    const matchesEmployee = employeeFilter === "All" || conversation.assignedEmployee === employeeFilter;
+    const matchesStatus = statusFilter === "All" || conversation.status === statusFilter;
+    const matchesPriority = priorityFilter === "All" || conversation.priority === priorityFilter;
+    const matchesDate = !dateRange || conversation.lastActivity.toLowerCase().includes(dateRange.toLowerCase());
+    return matchesChannel && matchesEmployee && matchesStatus && matchesPriority && matchesDate;
+  });
 
   return (
-    <div className="crm-dashboard min-h-screen space-y-6 p-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
-          <div className="crm-icon-primary flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl">
-            {config.icon}
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-white">{config.title}</h1>
-            <p className="mt-1 text-sm text-slate-400">{config.description}</p>
-          </div>
-        </div>
-        <button className="crm-btn crm-btn-primary">
-          <HiOutlinePlus className="h-4 w-4" />
-          {config.action}
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {config.metrics.map((metric) => <MetricCard key={metric.label} metric={metric} />)}
-      </div>
-
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_340px]">
-        <div className="space-y-5">
-          <div className="crm-card rounded-2xl p-4">
+    <div className="min-h-screen bg-[#06101f] text-slate-100">
+      <div className="space-y-6 p-6">
+        <section className="overflow-hidden rounded-3xl border border-white/10 bg-linear-to-br from-slate-900 via-slate-950 to-blue-950/50 p-6 shadow-2xl shadow-blue-950/20">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-200">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                Real-time collaboration hub
+              </div>
+              <h1 className="text-4xl font-bold text-white">Communication Center</h1>
+              <p className="mt-2 max-w-3xl text-sm text-slate-400">Manage conversations, team collaboration, client interactions, and communication channels.</p>
+            </div>
             <div className="flex flex-wrap gap-3">
-              <div className="relative min-w-56 flex-1">
-                <HiOutlineSearch className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                <input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder={`Search ${config.title.toLowerCase()}...`}
-                  className="w-full rounded-xl border border-slate-600 bg-slate-800 py-2.5 pl-9 pr-4 text-sm text-white outline-none transition placeholder-slate-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div className="relative">
-                <select
-                  value={filter}
-                  onChange={(event) => setFilter(event.target.value)}
-                  className="appearance-none rounded-xl border border-slate-600 bg-slate-800 px-4 py-2.5 pr-8 text-sm text-white outline-none transition focus:border-blue-500"
-                >
-                  {config.filters.map((item) => <option key={item}>{item}</option>)}
-                </select>
-                <HiOutlineChevronDown className="pointer-events-none absolute right-2.5 top-3 h-4 w-4 text-slate-400" />
-              </div>
-
-              <div className="ml-auto flex items-center gap-2 text-xs text-slate-400">
-                <HiOutlineFilter className="h-4 w-4" />
-                {filteredRows.length} of {config.rows.length} records
-              </div>
+              <button onClick={() => setShowChat(true)} className="crm-btn crm-btn-primary"><HiOutlinePlus className="h-4 w-4" />New Conversation</button>
+              <button className="crm-btn crm-btn-secondary"><HiOutlineUserGroup className="h-4 w-4" />Create Channel</button>
+              <button className="crm-btn crm-btn-secondary"><HiOutlineFilter className="h-4 w-4" />Filter</button>
+              <button className="crm-btn crm-btn-secondary"><HiOutlineDownload className="h-4 w-4" />Export</button>
             </div>
           </div>
+        </section>
 
-          <div className="crm-card overflow-hidden rounded-2xl">
-            <div className="overflow-x-auto">
-              <table className="crm-table">
-                <thead>
-                  <tr>
-                    {config.columns.map((column) => <th key={column.key}>{column.label}</th>)}
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          {kpis.map((kpi) => <KpiCard key={kpi.label} {...kpi} />)}
+        </section>
+
+        <section className="rounded-3xl border border-white/10 bg-slate-900/60 p-4 shadow-xl shadow-slate-950/30 backdrop-blur">
+          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
+            <HiOutlineFilter className="h-4 w-4 text-blue-300" />
+            Filters
+          </div>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <select value={channelFilter} onChange={(event) => setChannelFilter(event.target.value)} className="h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-sm outline-none transition focus:border-blue-400/60">
+              <option>All</option>
+              {["WhatsApp", "Live Chat", "SMS", "Internal Chat", "Client Chat", "Social Media"].map((channel) => <option key={channel}>{channel}</option>)}
+            </select>
+            <select value={employeeFilter} onChange={(event) => setEmployeeFilter(event.target.value)} className="h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-sm outline-none transition focus:border-blue-400/60">
+              <option>All</option>
+              {employees.map((employee) => <option key={employee}>{employee}</option>)}
+            </select>
+            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-sm outline-none transition focus:border-blue-400/60">
+              <option>All</option>
+              {Object.keys(statusStyle).map((status) => <option key={status}>{status}</option>)}
+            </select>
+            <select value={priorityFilter} onChange={(event) => setPriorityFilter(event.target.value)} className="h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-sm outline-none transition focus:border-blue-400/60">
+              <option>All</option>
+              <option>High</option>
+              <option>Medium</option>
+              <option>Low</option>
+            </select>
+            <input value={dateRange} onChange={(event) => setDateRange(event.target.value)} placeholder="Date range: 2m ago" className="h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-sm outline-none transition placeholder:text-slate-600 focus:border-blue-400/60" />
+          </div>
+        </section>
+
+        <section className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="min-w-0 rounded-3xl border border-white/10 bg-slate-900/50 p-5 shadow-2xl shadow-slate-950/30 backdrop-blur">
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-white">Unified Conversations</h2>
+                <p className="text-sm text-slate-500">Live channel ownership, last message, SLA posture, priority, and quick actions.</p>
+              </div>
+              <span className="rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-200">{filteredConversations.length} conversations</span>
+            </div>
+            <div className="max-h-[620px] overflow-auto rounded-2xl border border-white/10 crm-scrollbar">
+              <table className="min-w-[1320px] w-full border-collapse">
+                <thead className="sticky top-0 z-10 bg-slate-950/95 backdrop-blur">
+                  <tr className="text-left text-xs uppercase text-slate-500">
+                    {["Conversation ID", "Contact/Customer", "Channel Type", "Assigned Employee", "Last Message", "Last Activity", "Status", "Priority", "Actions"].map((column) => (
+                      <th key={column} className="px-4 py-3 font-semibold">{column}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredRows.length === 0 && (
+                  {filteredConversations.length === 0 && (
                     <tr>
-                      <td colSpan={config.columns.length} className="py-12 text-center text-slate-500">No records found</td>
+                      <td colSpan={9} className="px-4 py-14 text-center text-sm text-slate-500">No conversations match the current filters.</td>
                     </tr>
                   )}
-                  {filteredRows.map((row) => (
-                    <tr key={row.id}>
-                      {config.columns.map((column) => {
-                        if (column.key === "title") {
-                          return (
-                            <td key={column.key}>
-                              <div>
-                                <p className="text-sm font-semibold text-white">{row.title}</p>
-                                <p className="text-xs text-slate-400">{row.subtitle}</p>
-                              </div>
-                            </td>
-                          );
-                        }
-
-                        if (column.key === "status") {
-                          return (
-                            <td key={column.key}>
-                              <span className={`crm-badge text-xs ${badgeClasses[row.status] ?? "bg-slate-500/20 text-slate-400 border border-slate-500/30"}`}>
-                                {row.status}
-                              </span>
-                            </td>
-                          );
-                        }
-
-                        return <td key={column.key} className="text-sm text-slate-300">{row[column.key as keyof Row]}</td>;
-                      })}
+                  {filteredConversations.map((conversation) => (
+                    <tr key={conversation.id} onClick={() => setSelectedConversation(conversation)} className="cursor-pointer border-t border-white/10 transition hover:bg-blue-500/[0.06]">
+                      <td className="px-4 py-4">
+                        <p className="text-sm font-semibold text-white">{conversation.id}</p>
+                        <p className="text-xs text-slate-500">{conversation.unread} unread</p>
+                      </td>
+                      <td className="px-4 py-4">
+                        <p className="text-sm font-semibold text-white">{conversation.contact}</p>
+                        <p className="text-xs text-slate-500">{conversation.company} - {conversation.contactRole}</p>
+                      </td>
+                      <td className="px-4 py-4"><span className="rounded-lg border border-blue-400/20 bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-200">{conversation.channel}</span></td>
+                      <td className="px-4 py-4 text-sm text-slate-300">{conversation.assignedEmployee}</td>
+                      <td className="px-4 py-4"><p className="max-w-sm truncate text-sm text-slate-300">{conversation.lastMessage}</p></td>
+                      <td className="px-4 py-4 text-sm text-slate-400">{conversation.lastActivity}</td>
+                      <td className="px-4 py-4"><span className={`rounded-lg border bg-linear-to-r px-2.5 py-1 text-xs font-semibold ${statusStyle[conversation.status]}`}>{conversation.status}</span></td>
+                      <td className="px-4 py-4"><span className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${priorityStyle[conversation.priority]}`}>{conversation.priority}</span></td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-1.5">
+                          {[
+                            { title: "Open Chat", icon: <HiOutlineChatAlt2 className="h-4 w-4" /> },
+                            { title: "Assign", icon: <HiOutlineUserGroup className="h-4 w-4" /> },
+                            { title: "Reply", icon: <HiOutlineReply className="h-4 w-4" /> },
+                            { title: "Archive", icon: <HiOutlineArchive className="h-4 w-4" /> },
+                            { title: "Delete", icon: <HiOutlineTrash className="h-4 w-4" /> },
+                          ].map((action) => (
+                            <button key={action.title} onClick={(event) => event.stopPropagation()} title={action.title} className="rounded-lg border border-white/10 bg-white/[0.04] p-2 text-slate-400 transition hover:border-blue-400/40 hover:text-white">
+                              {action.icon}
+                            </button>
+                          ))}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
-        </div>
 
-        <div className="space-y-5">
-          <div className="crm-card rounded-2xl p-5">
-            <h2 className="text-base font-semibold text-white">Focus</h2>
-            <div className="mt-4 space-y-3">
-              {config.focus.map((item) => (
-                <div key={item.label} className="rounded-xl bg-slate-800/50 px-4 py-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{item.label}</span>
-                    <span className="text-lg font-bold text-white">{item.value}</span>
+          <aside className="space-y-4 rounded-3xl border border-white/10 bg-slate-900/60 p-5 shadow-2xl shadow-slate-950/30 backdrop-blur">
+            <div>
+              <h2 className="text-lg font-bold text-white">Activity Panel</h2>
+              <p className="text-sm text-slate-500">Live workload, online teammates, recent activity, and escalation signals.</p>
+            </div>
+            {sidePanels.map((panel) => (
+              <div key={panel.title} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-blue-400/40">
+                <h3 className="text-sm font-bold text-white">{panel.title}</h3>
+                <div className="mt-3 space-y-2">
+                  {panel.items.map((item) => (
+                    <div key={item} className="flex gap-2 text-xs text-slate-400">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-400" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </aside>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+          <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 shadow-xl shadow-slate-950/30">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold text-white">Conversation Detail Panel</h2>
+                <p className="text-sm text-slate-500">Customer information, chat messages, attachments, voice notes, CRM links, and status.</p>
+              </div>
+              <button onClick={() => setShowChat(true)} className="crm-btn crm-btn-secondary"><HiOutlineChatAlt2 className="h-4 w-4" />Open</button>
+            </div>
+            {selectedConversation && (
+              <div className="grid gap-5 lg:grid-cols-[300px_minmax(0,1fr)]">
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                    <p className="text-xs font-semibold uppercase text-blue-300">Customer Information</p>
+                    <h3 className="mt-2 text-xl font-bold text-white">{selectedConversation.contact}</h3>
+                    <p className="text-sm text-slate-400">{selectedConversation.contactRole}</p>
+                    <p className="mt-1 text-sm text-slate-500">{selectedConversation.company}</p>
                   </div>
-                  <p className="mt-1 text-xs text-slate-400">{item.caption}</p>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                    <p className="text-xs font-semibold uppercase text-slate-500">Conversation Status</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <span className={`rounded-lg border bg-linear-to-r px-2.5 py-1 text-xs font-semibold ${statusStyle[selectedConversation.status]}`}>{selectedConversation.status}</span>
+                      <span className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${priorityStyle[selectedConversation.priority]}`}>{selectedConversation.priority}</span>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                    <p className="text-xs font-semibold uppercase text-slate-500">Related CRM Records</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {selectedConversation.crmRecords.map((record) => <span key={record} className="rounded-lg border border-blue-400/20 bg-blue-500/10 px-2.5 py-1 text-xs text-blue-200">{record}</span>)}
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                    <p className="text-xs font-semibold uppercase text-slate-500">Internal Notes</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-400">{selectedConversation.internalNotes}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                  <div className="mb-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-white">{selectedConversation.channel}</p>
+                      <p className="text-xs text-emerald-300">Typing indicator active - read receipts enabled</p>
+                    </div>
+                    <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-300">{selectedConversation.satisfaction}% CSAT</span>
+                  </div>
+                  <div className="space-y-3">
+                    {selectedConversation.messages.map((message) => (
+                      <div key={`${message.author}-${message.time}`} className={`flex ${message.role === "agent" ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[78%] rounded-2xl border px-4 py-3 ${message.role === "agent" ? "border-blue-400/30 bg-blue-500/15" : message.role === "internal" ? "border-purple-400/30 bg-purple-500/15" : "border-white/10 bg-white/[0.05]"}`}>
+                          <div className="mb-1 flex items-center justify-between gap-4">
+                            <p className="text-xs font-semibold text-white">{message.author}</p>
+                            <p className="text-[11px] text-slate-500">{message.time}</p>
+                          </div>
+                          <p className="text-sm leading-6 text-slate-300">{message.text}</p>
+                          <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-500">
+                            {message.receipt && <span>{message.receipt}</span>}
+                            {message.reaction && <span>{message.reaction}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <span className="h-2 w-2 animate-pulse rounded-full bg-blue-400" />
+                      Customer typing...
+                    </div>
+                  </div>
+                  <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                      <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-white"><HiOutlinePaperClip className="h-4 w-4" />Attachments</p>
+                      <p className="text-xs text-slate-400">{selectedConversation.attachments.length ? selectedConversation.attachments.join(", ") : "No files attached"}</p>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                      <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-white"><HiOutlineMicrophone className="h-4 w-4" />Voice Notes</p>
+                      <p className="text-xs text-slate-400">{selectedConversation.voiceNotes.length ? selectedConversation.voiceNotes.join(", ") : "No voice notes"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 shadow-xl shadow-slate-950/30">
+              <h3 className="mb-4 text-base font-bold text-white">Activity Timeline</h3>
+              {["Conversation opened", "Auto assignment completed", "CRM record linked", "Read receipt captured"].map((item) => (
+                <div key={item} className="mb-3 flex gap-3">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-blue-400" />
+                  <div>
+                    <p className="text-sm font-semibold text-white">{item}</p>
+                    <p className="text-xs text-slate-500">Real-time communication log</p>
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="crm-card rounded-2xl p-5">
-            <h2 className="text-base font-semibold text-white">Recent Activity</h2>
-            <div className="mt-4 space-y-3">
-              {config.activity.map((item) => (
-                <div key={item.title} className="flex gap-3 rounded-xl bg-slate-800/50 p-3">
-                  <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${toneClasses[item.tone]}`}>
-                    <span className="h-2 w-2 rounded-full bg-current" />
+            <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 shadow-xl shadow-slate-950/30">
+              <h3 className="mb-4 text-base font-bold text-white">Chat UI Capabilities</h3>
+              <div className="grid gap-2">
+                {["Message bubbles", "Typing indicators", "Read receipts", "Emoji reactions", "File uploads", "Voice message support"].map((item) => (
+                  <div key={item} className="flex items-center gap-2 rounded-xl bg-white/[0.03] px-3 py-2 text-sm text-slate-300">
+                    <HiOutlineEmojiHappy className="h-4 w-4 text-blue-300" />
+                    {item}
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-white">{item.title}</p>
-                    <p className="mt-0.5 text-xs text-slate-500">{item.meta}</p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        </section>
+
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {featureCards.map((feature) => (
+            <div key={feature.title} className="rounded-2xl border border-white/10 bg-linear-to-br from-slate-900 to-blue-950/20 p-4 shadow-xl shadow-slate-950/20 transition hover:-translate-y-0.5 hover:border-purple-400/40">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-blue-200">{feature.icon}</div>
+              <p className="text-sm font-semibold text-white">{feature.title}</p>
+            </div>
+          ))}
+        </section>
+
+        <section className="grid gap-5 xl:grid-cols-4">
+          <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 shadow-xl shadow-slate-950/30 xl:col-span-2">
+            <h3 className="mb-4 text-base font-bold text-white">Response Time Chart</h3>
+            <ResponsiveContainer width="100%" height={280}>
+              <AreaChart data={responseData}>
+                <defs>
+                  <linearGradient id="responseFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.45} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+                <XAxis dataKey="day" stroke="#64748b" tick={{ fontSize: 12 }} />
+                <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
+                <Tooltip content={<ChartTip />} />
+                <Area type="monotone" dataKey="response" name="Avg Response Time" stroke="#3b82f6" fill="url(#responseFill)" strokeWidth={2.5} />
+                <Line type="monotone" dataKey="csat" name="Customer Satisfaction" stroke="#a855f7" strokeWidth={2.5} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 shadow-xl shadow-slate-950/30">
+            <h3 className="mb-4 text-base font-bold text-white">Message Volume Analytics</h3>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={responseData}>
+                <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+                <XAxis dataKey="day" stroke="#64748b" tick={{ fontSize: 12 }} />
+                <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
+                <Tooltip content={<ChartTip />} />
+                <Bar dataKey="volume" name="Messages" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 shadow-xl shadow-slate-950/30">
+            <h3 className="mb-4 text-base font-bold text-white">Resolution Rate Graph</h3>
+            <ResponsiveContainer width="100%" height={280}>
+              <LineChart data={responseData}>
+                <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+                <XAxis dataKey="day" stroke="#64748b" tick={{ fontSize: 12 }} />
+                <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
+                <Tooltip content={<ChartTip />} />
+                <Line type="monotone" dataKey="resolution" name="Resolution Rate" stroke="#10b981" strokeWidth={3} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 shadow-xl shadow-slate-950/30">
+          <h3 className="mb-4 text-base font-bold text-white">Team Communication Metrics</h3>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={teamData}>
+              <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+              <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 12 }} />
+              <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
+              <Tooltip content={<ChartTip />} />
+              <Bar dataKey="active" name="Active Chats" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="resolved" name="Resolved" fill="#10b981" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </section>
       </div>
+
+      {showChat && (
+        <div className="fixed inset-0 z-50 flex items-end justify-end bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-xl rounded-3xl border border-white/10 bg-slate-950 p-5 shadow-2xl shadow-blue-950/40">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-white">New Conversation</h2>
+                <p className="text-xs text-slate-500">Start a real-time CRM-linked chat.</p>
+              </div>
+              <button onClick={() => setShowChat(false)} className="rounded-xl p-2 text-slate-400 transition hover:bg-white/10 hover:text-white"><HiOutlineX className="h-5 w-5" /></button>
+            </div>
+            <div className="space-y-3">
+              <input placeholder="Contact or customer" className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm outline-none placeholder:text-slate-600 focus:border-blue-400/60" />
+              <select className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm outline-none focus:border-blue-400/60">
+                <option>Live Chat</option>
+                <option>WhatsApp</option>
+                <option>SMS</option>
+                <option>Internal Chat</option>
+                <option>Client Chat</option>
+                <option>Social Media</option>
+              </select>
+              <textarea placeholder="Write the first message..." rows={5} className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm outline-none placeholder:text-slate-600 focus:border-blue-400/60" />
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex gap-2 text-slate-400">
+                  <button title="Upload file" className="rounded-lg border border-white/10 bg-white/[0.04] p-2 hover:text-white"><HiOutlinePaperClip className="h-4 w-4" /></button>
+                  <button title="Voice note" className="rounded-lg border border-white/10 bg-white/[0.04] p-2 hover:text-white"><HiOutlineMicrophone className="h-4 w-4" /></button>
+                  <button title="Tag conversation" className="rounded-lg border border-white/10 bg-white/[0.04] p-2 hover:text-white"><HiOutlineTag className="h-4 w-4" /></button>
+                </div>
+                <button onClick={() => setShowChat(false)} className="crm-btn crm-btn-primary"><HiOutlineSparkles className="h-4 w-4" />Start Chat</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <button onClick={() => setShowChat(true)} className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500 to-purple-500 text-white shadow-2xl shadow-blue-950/50 transition hover:-translate-y-1" title="New Conversation">
+        <HiOutlinePlus className="h-6 w-6" />
+      </button>
     </div>
   );
 }
-

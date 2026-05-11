@@ -1,547 +1,179 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import "../../crm.css";
 import {
-  HiOutlineBell,
+  HiOutlineArrowRight,
   HiOutlineCalendar,
-  HiOutlineChartSquareBar,
-  HiOutlineChatAlt2,
-  HiOutlineChevronDown,
-  HiOutlineClipboardCheck,
-  HiOutlineCog,
-  HiOutlineDocumentText,
+  HiOutlineChartBar,
+  HiOutlineClock,
+  HiOutlineDownload,
+  HiOutlineEye,
   HiOutlineFilter,
   HiOutlineMail,
-  HiOutlinePhone,
+  HiOutlineMailOpen,
+  HiOutlinePaperClip,
+  HiOutlinePencil,
   HiOutlinePlus,
-  HiOutlinePresentationChartLine,
-  HiOutlineSearch,
-  HiOutlineSpeakerphone,
-  HiOutlineTicket,
+  HiOutlineReply,
+  HiOutlineSparkles,
+  HiOutlineTag,
+  HiOutlineTemplate,
+  HiOutlineTrash,
+  HiOutlineTrendingUp,
+  HiOutlineX,
 } from "react-icons/hi";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
-type ModuleKey =
-  | "pipelines"
-  | "tasks"
-  | "calendar"
-  | "calls"
-  | "emails"
-  | "communication"
-  | "marketing"
-  | "support"
-  | "quotations"
-  | "reports"
-  | "notifications"
-  | "settings";
+type EmailType = "Sales Email" | "Follow-up" | "Proposal" | "Support" | "Marketing" | "Internal";
+type EmailStatus = "Sent" | "Draft" | "Scheduled" | "Failed" | "Opened" | "Replied";
+type Priority = "High" | "Medium" | "Low";
 
-type Tone = "primary" | "accent" | "warning" | "danger";
-
-interface Metric {
-  label: string;
-  value: string;
-  sub: string;
-  tone: Tone;
-}
-
-interface Column {
-  key: string;
-  label: string;
-}
-
-interface Row {
+interface EmailRecord {
   id: string;
-  title: string;
-  subtitle: string;
-  status: string;
-  owner: string;
-  value: string;
-  due: string;
-  channel: string;
+  subject: string;
+  sender: string;
+  senderRole: string;
+  recipient: string;
+  recipientEmail: string;
+  company: string;
+  assignedEmployee: string;
+  type: EmailType;
+  dateTime: string;
+  status: EmailStatus;
+  priority: Priority;
+  openRate: number;
+  replyTime: string;
+  crmTags: string[];
+  attachments: string[];
+  preview: string;
 }
 
-interface FeatureConfig {
-  title: string;
-  description: string;
-  action: string;
-  icon: React.ReactNode;
-  filters: string[];
-  columns: Column[];
-  metrics: Metric[];
-  rows: Row[];
-  focus: { label: string; value: string; caption: string }[];
-  activity: { title: string; meta: string; tone: Tone }[];
-}
+const emails: EmailRecord[] = [
+  { id: "EM-2481", subject: "Enterprise rollout proposal with security addendum", sender: "Sarah Johnson", senderRole: "Strategic AE", recipient: "Maya Bennett", recipientEmail: "maya.bennett@acme.com", company: "Acme Corp", assignedEmployee: "Sarah Johnson", type: "Proposal", dateTime: "May 11, 2026 09:42 AM", status: "Opened", priority: "High", openRate: 86, replyTime: "42m avg", crmTags: ["Deal: Enterprise rollout", "Stage: Procurement", "ARR: $186K"], attachments: ["Security_Addendum.pdf", "Acme_Proposal_v4.pdf"], preview: "Sharing the revised commercial proposal, procurement checklist, and final security language for your review." },
+  { id: "EM-2482", subject: "Demo recap and recommended success plan", sender: "Emma Davis", senderRole: "Customer Success", recipient: "Noah Sterling", recipientEmail: "noah@cloudbase.io", company: "CloudBase", assignedEmployee: "Emma Davis", type: "Follow-up", dateTime: "May 11, 2026 08:15 AM", status: "Replied", priority: "Medium", openRate: 92, replyTime: "18m avg", crmTags: ["Account: Expansion", "Health: Green"], attachments: ["Implementation_Plan.xlsx"], preview: "Here is the recap from today's operations workflow demo along with the rollout plan we discussed." },
+  { id: "EM-2483", subject: "Partner co-sell introduction for finance vertical", sender: "Mike Chen", senderRole: "Partner Manager", recipient: "Ava Morris", recipientEmail: "ava@nexatech.co", company: "NexaTech", assignedEmployee: "Mike Chen", type: "Sales Email", dateTime: "May 10, 2026 05:30 PM", status: "Scheduled", priority: "High", openRate: 0, replyTime: "Queued", crmTags: ["Partner", "Co-sell", "Finance"], attachments: [], preview: "Introducing both teams so we can align on the finance vertical opportunity and ownership model." },
+  { id: "EM-2484", subject: "Support SLA summary and remediation update", sender: "Priya Shah", senderRole: "Support Lead", recipient: "Liam Carter", recipientEmail: "liam@globalent.com", company: "Global Enterprises", assignedEmployee: "Priya Shah", type: "Support", dateTime: "May 10, 2026 03:12 PM", status: "Sent", priority: "High", openRate: 73, replyTime: "2h avg", crmTags: ["Ticket: API timeout", "SLA: At risk"], attachments: ["Incident_Summary.pdf"], preview: "A concise summary of the timeout incident, the current mitigation plan, and the next update window." },
+  { id: "EM-2485", subject: "Q2 executive webinar invitation", sender: "Nina Patel", senderRole: "Demand Gen", recipient: "Olivia Grant", recipientEmail: "olivia@northstarbank.com", company: "Northstar Bank", assignedEmployee: "Nina Patel", type: "Marketing", dateTime: "May 09, 2026 11:00 AM", status: "Opened", priority: "Low", openRate: 68, replyTime: "Campaign", crmTags: ["Campaign: Exec Webinar", "Segment: Banking"], attachments: [], preview: "A targeted executive invitation for the revenue intelligence webinar and private roundtable." },
+  { id: "EM-2486", subject: "Internal account handoff notes for renewal risk", sender: "John Wilson", senderRole: "Revenue Ops", recipient: "Helio Health Team", recipientEmail: "renewals@heliohealth.com", company: "Helio Health", assignedEmployee: "John Wilson", type: "Internal", dateTime: "May 09, 2026 09:28 AM", status: "Draft", priority: "Medium", openRate: 0, replyTime: "Draft", crmTags: ["Renewal risk", "CS handoff"], attachments: ["Risk_Notes.docx"], preview: "Internal notes for the renewal call, adoption blockers, and suggested executive escalation path." },
+  { id: "EM-2487", subject: "Updated invoice delivery failed", sender: "Amir Khan", senderRole: "Billing Ops", recipient: "Finance Desk", recipientEmail: "finance@orbitretail.com", company: "Orbit Retail", assignedEmployee: "Amir Khan", type: "Support", dateTime: "May 08, 2026 04:50 PM", status: "Failed", priority: "Medium", openRate: 0, replyTime: "Retry", crmTags: ["Billing", "Email bounce"], attachments: ["Invoice_3941.pdf"], preview: "Delivery failed due to a mail server rejection. Billing operations needs a verified finance address." },
+];
 
-const toneClasses: Record<Tone, string> = {
-  primary: "crm-icon-primary text-blue-400",
-  accent: "crm-icon-accent text-emerald-400",
-  warning: "crm-icon-warning text-yellow-400",
-  danger: "crm-icon-danger text-red-400",
+const kpis = [
+  { label: "Total Emails", value: "18,426", description: "All CRM messages this quarter", trend: "+14.2% volume", progress: 88, icon: <HiOutlineMail className="h-5 w-5" />, tone: "bg-blue-500/20" },
+  { label: "Sent Emails", value: "12,890", description: "Delivered by sales and CS", trend: "+946 this week", progress: 74, icon: <HiOutlineArrowRight className="h-5 w-5" />, tone: "bg-cyan-500/20" },
+  { label: "Open Rate", value: "71.8%", description: "Weighted across sequences", trend: "+5.4 pts", progress: 72, icon: <HiOutlineMailOpen className="h-5 w-5" />, tone: "bg-emerald-500/20" },
+  { label: "Reply Rate", value: "24.6%", description: "Human replies captured", trend: "+3.1 pts", progress: 58, icon: <HiOutlineReply className="h-5 w-5" />, tone: "bg-purple-500/20" },
+  { label: "Pending Replies", value: "318", description: "Awaiting client response", trend: "-36 vs yesterday", progress: 46, icon: <HiOutlineClock className="h-5 w-5" />, tone: "bg-amber-500/20" },
+  { label: "Scheduled Emails", value: "142", description: "Queued follow-ups", trend: "38 for today", progress: 61, icon: <HiOutlineCalendar className="h-5 w-5" />, tone: "bg-fuchsia-500/20" },
+];
+
+const statusStyle: Record<EmailStatus, string> = {
+  Sent: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+  Scheduled: "bg-yellow-500/15 text-yellow-300 border-yellow-500/30",
+  Failed: "bg-red-500/15 text-red-300 border-red-500/30",
+  Opened: "bg-blue-500/15 text-blue-300 border-blue-500/30",
+  Replied: "bg-purple-500/15 text-purple-300 border-purple-500/30",
+  Draft: "bg-slate-500/15 text-slate-300 border-slate-500/30",
 };
 
-const badgeClasses: Record<string, string> = {
-  Active: "bg-green-500/20 text-green-400 border border-green-500/30",
-  Scheduled: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-  Draft: "bg-slate-500/20 text-slate-400 border border-slate-500/30",
-  Pending: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
-  Review: "bg-purple-500/20 text-purple-400 border border-purple-500/30",
-  Sent: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-  Completed: "bg-green-500/20 text-green-400 border border-green-500/30",
-  Overdue: "bg-red-500/20 text-red-400 border border-red-500/30",
-  Open: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-  Escalated: "bg-red-500/20 text-red-400 border border-red-500/30",
-  Won: "bg-green-500/20 text-green-400 border border-green-500/30",
-  Paused: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
-  Enabled: "bg-green-500/20 text-green-400 border border-green-500/30",
+const priorityStyle: Record<Priority, string> = {
+  High: "bg-red-500/15 text-red-300 border-red-500/30",
+  Medium: "bg-yellow-500/15 text-yellow-300 border-yellow-500/30",
+  Low: "bg-slate-500/15 text-slate-300 border-slate-500/30",
 };
 
-const configs: Record<ModuleKey, FeatureConfig> = {
-  pipelines: {
-    title: "Pipelines",
-    description: "Design, monitor, and tune every sales pipeline stage",
-    action: "Add Pipeline",
-    icon: <HiOutlineChartSquareBar className="h-6 w-6" />,
-    filters: ["All", "Active", "Paused", "Review"],
-    columns: [
-      { key: "title", label: "Pipeline" },
-      { key: "status", label: "Status" },
-      { key: "value", label: "Value" },
-      { key: "owner", label: "Owner" },
-      { key: "due", label: "Review Date" },
-    ],
-    metrics: [
-      { label: "Active Pipelines", value: "6", sub: "Across sales teams", tone: "primary" },
-      { label: "Pipeline Value", value: "$1.42M", sub: "Open opportunity value", tone: "accent" },
-      { label: "Avg Velocity", value: "31d", sub: "Lead to close", tone: "warning" },
-      { label: "Needs Review", value: "2", sub: "Stage rules stale", tone: "danger" },
-    ],
-    rows: [
-      { id: "P-101", title: "Enterprise Sales", subtitle: "Discovery > Proposal > Contract", status: "Active", value: "$820K", owner: "Sarah J.", due: "2024-08-12", channel: "Direct" },
-      { id: "P-102", title: "SMB Growth", subtitle: "Trial > Upgrade > Annual", status: "Active", value: "$240K", owner: "Mike C.", due: "2024-08-20", channel: "Inbound" },
-      { id: "P-103", title: "Partner Co-sell", subtitle: "Partner intro > Joint proposal", status: "Review", value: "$310K", owner: "Emma D.", due: "2024-08-02", channel: "Partner" },
-      { id: "P-104", title: "Expansion Motion", subtitle: "Usage signal > Success plan", status: "Paused", value: "$95K", owner: "John W.", due: "2024-09-01", channel: "Customer" },
-    ],
-    focus: [
-      { label: "Best Stage", value: "Contract", caption: "86% conversion" },
-      { label: "Slowest Stage", value: "Proposal", caption: "12 day average" },
-      { label: "Top Owner", value: "Sarah J.", caption: "$820K managed" },
-    ],
-    activity: [
-      { title: "Enterprise Sales stage rule updated", meta: "2h ago", tone: "primary" },
-      { title: "Partner Co-sell marked for review", meta: "Yesterday", tone: "warning" },
-      { title: "Expansion Motion paused", meta: "Jun 28", tone: "danger" },
-    ],
-  },
-  tasks: {
-    title: "Tasks",
-    description: "Prioritize follow-ups, handoffs, and sales commitments",
-    action: "Add Task",
-    icon: <HiOutlineClipboardCheck className="h-6 w-6" />,
-    filters: ["All", "Open", "Completed", "Overdue"],
-    columns: [
-      { key: "title", label: "Task" },
-      { key: "status", label: "Status" },
-      { key: "owner", label: "Assignee" },
-      { key: "channel", label: "Type" },
-      { key: "due", label: "Due" },
-    ],
-    metrics: [
-      { label: "Open Tasks", value: "28", sub: "Assigned this week", tone: "primary" },
-      { label: "Completed", value: "64", sub: "Last 7 days", tone: "accent" },
-      { label: "Due Today", value: "9", sub: "Needs focus", tone: "warning" },
-      { label: "Overdue", value: "3", sub: "Past SLA", tone: "danger" },
-    ],
-    rows: [
-      { id: "T-201", title: "Send revised proposal", subtitle: "Acme Corp enterprise rollout", status: "Open", value: "High", owner: "Sarah J.", due: "Today", channel: "Proposal" },
-      { id: "T-202", title: "Schedule technical demo", subtitle: "CloudBase operations suite", status: "Open", value: "Medium", owner: "Emma D.", due: "Tomorrow", channel: "Meeting" },
-      { id: "T-203", title: "Update lost reason", subtitle: "InfoSys finance review", status: "Overdue", value: "Low", owner: "John W.", due: "Yesterday", channel: "Admin" },
-      { id: "T-204", title: "Confirm onboarding owner", subtitle: "StartUp Ventures upgrade", status: "Completed", value: "High", owner: "Sarah J.", due: "Jun 28", channel: "Handoff" },
-    ],
-    focus: [
-      { label: "Today", value: "9", caption: "Tasks due" },
-      { label: "High Priority", value: "11", caption: "Open items" },
-      { label: "SLA Risk", value: "3", caption: "Overdue tasks" },
-    ],
-    activity: [
-      { title: "Sarah completed onboarding handoff", meta: "35m ago", tone: "accent" },
-      { title: "John has an overdue admin task", meta: "1h ago", tone: "danger" },
-      { title: "Emma added a demo follow-up", meta: "3h ago", tone: "primary" },
-    ],
-  },
-  calendar: {
-    title: "Calendar",
-    description: "Coordinate meetings, demos, renewals, and sales events",
-    action: "Add Event",
-    icon: <HiOutlineCalendar className="h-6 w-6" />,
-    filters: ["All", "Scheduled", "Completed", "Pending"],
-    columns: [
-      { key: "title", label: "Event" },
-      { key: "status", label: "Status" },
-      { key: "owner", label: "Host" },
-      { key: "channel", label: "Channel" },
-      { key: "due", label: "Time" },
-    ],
-    metrics: [
-      { label: "Today", value: "7", sub: "Calendar events", tone: "primary" },
-      { label: "Demos", value: "4", sub: "Product sessions", tone: "accent" },
-      { label: "Renewals", value: "3", sub: "This week", tone: "warning" },
-      { label: "Conflicts", value: "1", sub: "Needs reschedule", tone: "danger" },
-    ],
-    rows: [
-      { id: "E-301", title: "Acme legal review", subtitle: "Contract approval call", status: "Scheduled", value: "45m", owner: "Sarah J.", due: "Today 2:00 PM", channel: "Google Meet" },
-      { id: "E-302", title: "CloudBase product demo", subtitle: "Operations suite walkthrough", status: "Scheduled", value: "60m", owner: "Emma D.", due: "Tomorrow 11:00 AM", channel: "Zoom" },
-      { id: "E-303", title: "NexaTech partner sync", subtitle: "Scope confirmation", status: "Pending", value: "30m", owner: "Mike C.", due: "Fri 4:00 PM", channel: "Teams" },
-      { id: "E-304", title: "Startup handoff", subtitle: "Customer success intro", status: "Completed", value: "30m", owner: "Sarah J.", due: "Jun 28", channel: "Zoom" },
-    ],
-    focus: [
-      { label: "Next Event", value: "2:00 PM", caption: "Acme legal review" },
-      { label: "Free Slots", value: "5", caption: "This week" },
-      { label: "Avg Duration", value: "42m", caption: "Sales meetings" },
-    ],
-    activity: [
-      { title: "CloudBase demo accepted", meta: "20m ago", tone: "accent" },
-      { title: "NexaTech sync awaiting reply", meta: "2h ago", tone: "warning" },
-      { title: "One calendar conflict found", meta: "Today", tone: "danger" },
-    ],
-  },
-  calls: {
-    title: "Calls",
-    description: "Log call outcomes, callbacks, and rep activity",
-    action: "Log Call",
-    icon: <HiOutlinePhone className="h-6 w-6" />,
-    filters: ["All", "Completed", "Scheduled", "Pending"],
-    columns: [
-      { key: "title", label: "Call" },
-      { key: "status", label: "Outcome" },
-      { key: "owner", label: "Rep" },
-      { key: "value", label: "Duration" },
-      { key: "due", label: "Time" },
-    ],
-    metrics: [
-      { label: "Calls Today", value: "42", sub: "Team total", tone: "primary" },
-      { label: "Connected", value: "26", sub: "62% connect rate", tone: "accent" },
-      { label: "Callbacks", value: "8", sub: "Scheduled next", tone: "warning" },
-      { label: "Missed", value: "4", sub: "Needs retry", tone: "danger" },
-    ],
-    rows: [
-      { id: "C-401", title: "Acme procurement", subtitle: "Pricing clarification", status: "Completed", value: "18m", owner: "Sarah J.", due: "10:20 AM", channel: "Outbound" },
-      { id: "C-402", title: "DataFlow expansion", subtitle: "Department rollout", status: "Scheduled", value: "30m", owner: "Emma D.", due: "2:30 PM", channel: "Discovery" },
-      { id: "C-403", title: "Global Enterprises", subtitle: "Budget owner callback", status: "Pending", value: "15m", owner: "John W.", due: "Tomorrow", channel: "Callback" },
-      { id: "C-404", title: "NexaTech scope review", subtitle: "Support requirements", status: "Completed", value: "24m", owner: "Mike C.", due: "Yesterday", channel: "Partner" },
-    ],
-    focus: [
-      { label: "Connect Rate", value: "62%", caption: "+8% this week" },
-      { label: "Avg Duration", value: "21m", caption: "Connected calls" },
-      { label: "Best Rep", value: "Sarah J.", caption: "14 connected" },
-    ],
-    activity: [
-      { title: "Acme call logged with next step", meta: "18m ago", tone: "accent" },
-      { title: "Global callback scheduled", meta: "1h ago", tone: "warning" },
-      { title: "Four missed calls need retry", meta: "Today", tone: "danger" },
-    ],
-  },
-  emails: {
-    title: "Emails",
-    description: "Track outbound sequences, replies, and email performance",
-    action: "Compose Email",
-    icon: <HiOutlineMail className="h-6 w-6" />,
-    filters: ["All", "Sent", "Scheduled", "Draft"],
-    columns: [
-      { key: "title", label: "Email" },
-      { key: "status", label: "Status" },
-      { key: "owner", label: "Sender" },
-      { key: "value", label: "Open Rate" },
-      { key: "due", label: "Sent" },
-    ],
-    metrics: [
-      { label: "Sent Today", value: "186", sub: "Across all reps", tone: "primary" },
-      { label: "Reply Rate", value: "18%", sub: "+3.1% vs last week", tone: "accent" },
-      { label: "Scheduled", value: "34", sub: "Queued messages", tone: "warning" },
-      { label: "Drafts", value: "11", sub: "Awaiting review", tone: "danger" },
-    ],
-    rows: [
-      { id: "M-501", title: "Revised Acme proposal", subtitle: "Security addendum attached", status: "Sent", value: "74%", owner: "Sarah J.", due: "Today", channel: "Deal" },
-      { id: "M-502", title: "CloudBase demo recap", subtitle: "Operations suite follow-up", status: "Scheduled", value: "N/A", owner: "Emma D.", due: "Tomorrow", channel: "Sequence" },
-      { id: "M-503", title: "Partner co-sell intro", subtitle: "NexaTech scope note", status: "Draft", value: "N/A", owner: "Mike C.", due: "Today", channel: "Partner" },
-      { id: "M-504", title: "Renewal reminder", subtitle: "Customer health outreach", status: "Sent", value: "61%", owner: "John W.", due: "Jun 27", channel: "Renewal" },
-    ],
-    focus: [
-      { label: "Open Rate", value: "64%", caption: "Last 7 days" },
-      { label: "Replies", value: "34", caption: "This week" },
-      { label: "Best Template", value: "Demo Recap", caption: "24% reply rate" },
-    ],
-    activity: [
-      { title: "Acme opened revised proposal", meta: "9m ago", tone: "accent" },
-      { title: "NexaTech draft needs approval", meta: "1h ago", tone: "warning" },
-      { title: "Renewal reminder sequence sent", meta: "Yesterday", tone: "primary" },
-    ],
-  },
-  communication: {
-    title: "Communication",
-    description: "Unify chat, SMS, meetings, and internal sales threads",
-    action: "New Thread",
-    icon: <HiOutlineChatAlt2 className="h-6 w-6" />,
-    filters: ["All", "Open", "Pending", "Completed"],
-    columns: [
-      { key: "title", label: "Thread" },
-      { key: "status", label: "Status" },
-      { key: "owner", label: "Owner" },
-      { key: "channel", label: "Channel" },
-      { key: "due", label: "Last Update" },
-    ],
-    metrics: [
-      { label: "Open Threads", value: "19", sub: "Across channels", tone: "primary" },
-      { label: "SLA Met", value: "94%", sub: "Response compliance", tone: "accent" },
-      { label: "Waiting", value: "6", sub: "Customer response", tone: "warning" },
-      { label: "Escalated", value: "2", sub: "Manager attention", tone: "danger" },
-    ],
-    rows: [
-      { id: "TH-601", title: "Acme legal clarifications", subtitle: "Contract thread", status: "Open", value: "High", owner: "Sarah J.", due: "12m ago", channel: "Email" },
-      { id: "TH-602", title: "CloudBase implementation chat", subtitle: "Technical questions", status: "Pending", value: "Medium", owner: "Emma D.", due: "1h ago", channel: "Slack" },
-      { id: "TH-603", title: "Global pilot requirements", subtitle: "Discovery notes", status: "Open", value: "Medium", owner: "John W.", due: "3h ago", channel: "SMS" },
-      { id: "TH-604", title: "Startup CS handoff", subtitle: "Closed-loop handoff", status: "Completed", value: "Low", owner: "Sarah J.", due: "Yesterday", channel: "Internal" },
-    ],
-    focus: [
-      { label: "Median Reply", value: "18m", caption: "Across channels" },
-      { label: "Top Channel", value: "Email", caption: "52% volume" },
-      { label: "Escalations", value: "2", caption: "Need owner" },
-    ],
-    activity: [
-      { title: "Acme thread assigned to Sarah", meta: "12m ago", tone: "primary" },
-      { title: "CloudBase waiting on customer", meta: "1h ago", tone: "warning" },
-      { title: "Two escalations still open", meta: "Today", tone: "danger" },
-    ],
-  },
-  marketing: {
-    title: "Marketing",
-    description: "Plan campaigns, measure conversion, and manage audiences",
-    action: "Create Campaign",
-    icon: <HiOutlineSpeakerphone className="h-6 w-6" />,
-    filters: ["All", "Active", "Scheduled", "Draft"],
-    columns: [
-      { key: "title", label: "Campaign" },
-      { key: "status", label: "Status" },
-      { key: "value", label: "Leads" },
-      { key: "owner", label: "Owner" },
-      { key: "due", label: "Launch" },
-    ],
-    metrics: [
-      { label: "Active Campaigns", value: "8", sub: "Live right now", tone: "primary" },
-      { label: "New Leads", value: "412", sub: "This month", tone: "accent" },
-      { label: "Avg CPL", value: "$38", sub: "-11% vs target", tone: "warning" },
-      { label: "Drafts", value: "5", sub: "Need content", tone: "danger" },
-    ],
-    rows: [
-      { id: "MK-701", title: "Enterprise security webinar", subtitle: "ABM target list", status: "Active", value: "146", owner: "Nina P.", due: "Live", channel: "Webinar" },
-      { id: "MK-702", title: "Q3 renewal nurture", subtitle: "Customer expansion", status: "Scheduled", value: "89", owner: "Omar R.", due: "Jul 10", channel: "Email" },
-      { id: "MK-703", title: "Partner marketplace launch", subtitle: "Co-marketing", status: "Draft", value: "0", owner: "Lena K.", due: "Jul 18", channel: "Partner" },
-      { id: "MK-704", title: "Startup founder guide", subtitle: "Inbound asset", status: "Active", value: "177", owner: "Nina P.", due: "Live", channel: "Content" },
-    ],
-    focus: [
-      { label: "Best Campaign", value: "Webinar", caption: "146 leads" },
-      { label: "MQL Rate", value: "31%", caption: "+4.2% this month" },
-      { label: "Spend", value: "$15.6K", caption: "Month to date" },
-    ],
-    activity: [
-      { title: "Webinar crossed 100 registrations", meta: "45m ago", tone: "accent" },
-      { title: "Partner launch draft assigned", meta: "2h ago", tone: "warning" },
-      { title: "Renewal nurture scheduled", meta: "Yesterday", tone: "primary" },
-    ],
-  },
-  support: {
-    title: "Support Tickets",
-    description: "Monitor customer issues, escalation risk, and SLA health",
-    action: "New Ticket",
-    icon: <HiOutlineTicket className="h-6 w-6" />,
-    filters: ["All", "Open", "Pending", "Escalated"],
-    columns: [
-      { key: "title", label: "Ticket" },
-      { key: "status", label: "Status" },
-      { key: "owner", label: "Agent" },
-      { key: "value", label: "Priority" },
-      { key: "due", label: "SLA" },
-    ],
-    metrics: [
-      { label: "Open Tickets", value: "23", sub: "Customer issues", tone: "primary" },
-      { label: "Resolved", value: "71", sub: "Last 7 days", tone: "accent" },
-      { label: "SLA Risk", value: "5", sub: "Due soon", tone: "warning" },
-      { label: "Escalated", value: "3", sub: "Critical accounts", tone: "danger" },
-    ],
-    rows: [
-      { id: "S-801", title: "Acme SSO mapping", subtitle: "Enterprise account", status: "Open", value: "High", owner: "Priya S.", due: "2h left", channel: "Portal" },
-      { id: "S-802", title: "DataFlow report export", subtitle: "Analytics module", status: "Pending", value: "Medium", owner: "Leon M.", due: "5h left", channel: "Email" },
-      { id: "S-803", title: "Global API timeout", subtitle: "Pilot integration", status: "Escalated", value: "Critical", owner: "Priya S.", due: "30m left", channel: "Phone" },
-      { id: "S-804", title: "Startup invoice question", subtitle: "Billing support", status: "Open", value: "Low", owner: "Amir K.", due: "Tomorrow", channel: "Chat" },
-    ],
-    focus: [
-      { label: "SLA Health", value: "91%", caption: "This week" },
-      { label: "Median Resolve", value: "6h", caption: "All queues" },
-      { label: "Critical", value: "1", caption: "Global API timeout" },
-    ],
-    activity: [
-      { title: "Global API ticket escalated", meta: "14m ago", tone: "danger" },
-      { title: "Acme SSO assigned to Priya", meta: "42m ago", tone: "primary" },
-      { title: "DataFlow waiting on customer", meta: "2h ago", tone: "warning" },
-    ],
-  },
-  quotations: {
-    title: "Quotations",
-    description: "Create proposals, quotes, approvals, and customer-ready offers",
-    action: "Create Quote",
-    icon: <HiOutlineDocumentText className="h-6 w-6" />,
-    filters: ["All", "Draft", "Sent", "Won"],
-    columns: [
-      { key: "title", label: "Quotation" },
-      { key: "status", label: "Status" },
-      { key: "value", label: "Amount" },
-      { key: "owner", label: "Owner" },
-      { key: "due", label: "Valid Until" },
-    ],
-    metrics: [
-      { label: "Quotes Sent", value: "17", sub: "This month", tone: "primary" },
-      { label: "Accepted", value: "$218K", sub: "Closed value", tone: "accent" },
-      { label: "Awaiting Approval", value: "6", sub: "Manager review", tone: "warning" },
-      { label: "Expiring", value: "4", sub: "Next 7 days", tone: "danger" },
-    ],
-    rows: [
-      { id: "Q-901", title: "Acme enterprise proposal", subtitle: "Security and implementation", status: "Sent", value: "$86,000", owner: "Sarah J.", due: "2024-08-15", channel: "PDF" },
-      { id: "Q-902", title: "CloudBase operations suite", subtitle: "Annual subscription", status: "Draft", value: "$73,000", owner: "Emma D.", due: "2024-08-02", channel: "Doc" },
-      { id: "Q-903", title: "DataFlow expansion order", subtitle: "Two departments", status: "Won", value: "$124,000", owner: "Emma D.", due: "2024-07-24", channel: "PDF" },
-      { id: "Q-904", title: "NexaTech managed services", subtitle: "Partner bundle", status: "Review", value: "$27,000", owner: "Mike C.", due: "2024-09-19", channel: "Doc" },
-    ],
-    focus: [
-      { label: "Approval Queue", value: "6", caption: "Need manager review" },
-      { label: "Avg Discount", value: "8.5%", caption: "Current quotes" },
-      { label: "Close Rate", value: "41%", caption: "From sent quotes" },
-    ],
-    activity: [
-      { title: "Acme proposal viewed twice", meta: "11m ago", tone: "accent" },
-      { title: "NexaTech quote needs approval", meta: "1h ago", tone: "warning" },
-      { title: "DataFlow quote accepted", meta: "Yesterday", tone: "accent" },
-    ],
-  },
-  reports: {
-    title: "Reports",
-    description: "Build sales, activity, pipeline, and revenue reporting packs",
-    action: "Generate Report",
-    icon: <HiOutlinePresentationChartLine className="h-6 w-6" />,
-    filters: ["All", "Completed", "Scheduled", "Draft"],
-    columns: [
-      { key: "title", label: "Report" },
-      { key: "status", label: "Status" },
-      { key: "owner", label: "Owner" },
-      { key: "channel", label: "Format" },
-      { key: "due", label: "Run Date" },
-    ],
-    metrics: [
-      { label: "Reports", value: "24", sub: "Saved reports", tone: "primary" },
-      { label: "Scheduled", value: "9", sub: "Recurring exports", tone: "accent" },
-      { label: "Dashboards", value: "6", sub: "Live views", tone: "warning" },
-      { label: "Failed Runs", value: "1", sub: "Needs retry", tone: "danger" },
-    ],
-    rows: [
-      { id: "R-1001", title: "Pipeline forecast", subtitle: "Weighted revenue by owner", status: "Completed", value: "2.4 MB", owner: "Sarah J.", due: "Today", channel: "PDF" },
-      { id: "R-1002", title: "Activity scorecard", subtitle: "Calls, emails, tasks", status: "Scheduled", value: "Live", owner: "Mike C.", due: "Monday", channel: "Dashboard" },
-      { id: "R-1003", title: "Campaign attribution", subtitle: "Lead source conversion", status: "Draft", value: "N/A", owner: "Nina P.", due: "Jul 12", channel: "CSV" },
-      { id: "R-1004", title: "Renewal risk report", subtitle: "Health and upcoming renewals", status: "Completed", value: "1.8 MB", owner: "Emma D.", due: "Yesterday", channel: "Excel" },
-    ],
-    focus: [
-      { label: "Next Run", value: "Monday", caption: "Activity scorecard" },
-      { label: "Most Viewed", value: "Forecast", caption: "83 views" },
-      { label: "Export Queue", value: "2", caption: "In progress" },
-    ],
-    activity: [
-      { title: "Pipeline forecast generated", meta: "30m ago", tone: "accent" },
-      { title: "Campaign attribution saved as draft", meta: "2h ago", tone: "warning" },
-      { title: "One scheduled report failed", meta: "Yesterday", tone: "danger" },
-    ],
-  },
-  notifications: {
-    title: "Notifications",
-    description: "Control alerts for deals, tasks, support, and customer events",
-    action: "Create Rule",
-    icon: <HiOutlineBell className="h-6 w-6" />,
-    filters: ["All", "Enabled", "Paused", "Pending"],
-    columns: [
-      { key: "title", label: "Notification" },
-      { key: "status", label: "Status" },
-      { key: "owner", label: "Audience" },
-      { key: "channel", label: "Channel" },
-      { key: "due", label: "Last Triggered" },
-    ],
-    metrics: [
-      { label: "Rules Enabled", value: "18", sub: "Active automations", tone: "primary" },
-      { label: "Delivered", value: "1.2K", sub: "This month", tone: "accent" },
-      { label: "Muted", value: "5", sub: "User controlled", tone: "warning" },
-      { label: "Failed", value: "2", sub: "Webhook errors", tone: "danger" },
-    ],
-    rows: [
-      { id: "N-1101", title: "High value deal changed", subtitle: "Value above $50K", status: "Enabled", value: "High", owner: "Sales Managers", due: "12m ago", channel: "In-app" },
-      { id: "N-1102", title: "Task overdue reminder", subtitle: "Past due by 24 hours", status: "Enabled", value: "Medium", owner: "Task Owners", due: "1h ago", channel: "Email" },
-      { id: "N-1103", title: "SLA breach warning", subtitle: "Support ticket near breach", status: "Enabled", value: "Critical", owner: "Support Leads", due: "35m ago", channel: "Slack" },
-      { id: "N-1104", title: "Weekly digest", subtitle: "Pipeline and activity summary", status: "Paused", value: "Low", owner: "All CRM Users", due: "Friday", channel: "Email" },
-    ],
-    focus: [
-      { label: "Delivery Rate", value: "99.1%", caption: "Last 30 days" },
-      { label: "Top Alert", value: "Overdue", caption: "312 triggers" },
-      { label: "Webhook Errors", value: "2", caption: "Needs retry" },
-    ],
-    activity: [
-      { title: "SLA warning sent to support leads", meta: "35m ago", tone: "danger" },
-      { title: "Deal change alert delivered", meta: "12m ago", tone: "primary" },
-      { title: "Weekly digest paused", meta: "Yesterday", tone: "warning" },
-    ],
-  },
-  settings: {
-    title: "Settings",
-    description: "Configure CRM teams, permissions, stages, and automation rules",
-    action: "Add Setting",
-    icon: <HiOutlineCog className="h-6 w-6" />,
-    filters: ["All", "Enabled", "Review", "Pending"],
-    columns: [
-      { key: "title", label: "Setting" },
-      { key: "status", label: "Status" },
-      { key: "owner", label: "Owner" },
-      { key: "channel", label: "Area" },
-      { key: "due", label: "Updated" },
-    ],
-    metrics: [
-      { label: "Users", value: "42", sub: "CRM seats", tone: "primary" },
-      { label: "Automations", value: "16", sub: "Enabled rules", tone: "accent" },
-      { label: "Pending Reviews", value: "4", sub: "Admin approval", tone: "warning" },
-      { label: "Access Risks", value: "1", sub: "Permission audit", tone: "danger" },
-    ],
-    rows: [
-      { id: "SET-1201", title: "Sales stage definitions", subtitle: "Pipeline rules and probability", status: "Enabled", value: "Core", owner: "Admin", due: "Today", channel: "Pipeline" },
-      { id: "SET-1202", title: "Lead assignment routing", subtitle: "Round-robin by region", status: "Review", value: "High", owner: "Ops", due: "Yesterday", channel: "Automation" },
-      { id: "SET-1203", title: "Notification preferences", subtitle: "Default CRM alert rules", status: "Enabled", value: "Medium", owner: "Admin", due: "Jun 27", channel: "Alerts" },
-      { id: "SET-1204", title: "Role permission audit", subtitle: "Manager and rep visibility", status: "Pending", value: "High", owner: "Security", due: "Jul 02", channel: "Access" },
-    ],
-    focus: [
-      { label: "Default Pipeline", value: "Enterprise", caption: "Used by 18 reps" },
-      { label: "Automation Health", value: "97%", caption: "Successful runs" },
-      { label: "Audit Item", value: "1", caption: "Permission review" },
-    ],
-    activity: [
-      { title: "Stage definitions updated", meta: "Today", tone: "accent" },
-      { title: "Assignment routing needs review", meta: "Yesterday", tone: "warning" },
-      { title: "Permission audit flagged one risk", meta: "Jun 27", tone: "danger" },
-    ],
-  },
-};
+const openRateData = [
+  { day: "Mon", open: 66, reply: 18, activity: 320 },
+  { day: "Tue", open: 69, reply: 21, activity: 410 },
+  { day: "Wed", open: 73, reply: 25, activity: 468 },
+  { day: "Thu", open: 71, reply: 23, activity: 438 },
+  { day: "Fri", open: 76, reply: 28, activity: 520 },
+  { day: "Sat", open: 62, reply: 16, activity: 184 },
+  { day: "Sun", open: 59, reply: 14, activity: 142 },
+];
 
-function MetricCard({ metric }: { metric: Metric }) {
+const campaignData = [
+  { name: "Proposal", performance: 84 },
+  { name: "Follow-up", performance: 72 },
+  { name: "Marketing", performance: 61 },
+  { name: "Support", performance: 77 },
+  { name: "Internal", performance: 53 },
+];
+
+const teamMetrics = [
+  { name: "Sarah", sent: 286, replies: 74 },
+  { name: "Emma", sent: 241, replies: 68 },
+  { name: "Mike", sent: 198, replies: 42 },
+  { name: "Priya", sent: 176, replies: 59 },
+  { name: "Nina", sent: 344, replies: 51 },
+];
+
+const panelGroups = [
+  { title: "Upcoming Follow-ups", items: ["Acme procurement review at 2:30 PM", "Northstar ROI model tomorrow", "Helio renewal check-in Friday"] },
+  { title: "Pending Replies", items: ["318 active waiting threads", "42 high-value deals idle", "9 executive contacts overdue"] },
+  { title: "Recent Conversations", items: ["CloudBase replied to demo recap", "Acme opened proposal 4 times", "Global asked for SLA summary"] },
+  { title: "Scheduled Emails", items: ["38 queued today", "Partner intro at 5:30 PM", "Renewal sequence starts tomorrow"] },
+  { title: "Email Activity Timeline", items: ["09:42 AM proposal opened", "08:15 AM customer replied", "Yesterday sequence completed"] },
+];
+
+const featureCards = [
+  { title: "Email scheduling", icon: <HiOutlineCalendar className="h-5 w-5" /> },
+  { title: "Open tracking", icon: <HiOutlineEye className="h-5 w-5" /> },
+  { title: "Attachment support", icon: <HiOutlinePaperClip className="h-5 w-5" /> },
+  { title: "Email templates", icon: <HiOutlineTemplate className="h-5 w-5" /> },
+  { title: "Threaded conversations", icon: <HiOutlineReply className="h-5 w-5" /> },
+  { title: "CRM integration tags", icon: <HiOutlineTag className="h-5 w-5" /> },
+  { title: "Follow-up reminders", icon: <HiOutlineClock className="h-5 w-5" /> },
+];
+
+function ChartTip({ active, payload, label }: { active?: boolean; payload?: Array<{ color: string; name: string; value: number | string }>; label?: string }) {
+  if (!active || !payload?.length) return null;
   return (
-    <div className="crm-card rounded-2xl p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm text-slate-400">{metric.label}</p>
-          <p className="mt-2 text-3xl font-bold text-white">{metric.value}</p>
-          <p className="mt-1 text-xs text-slate-500">{metric.sub}</p>
+    <div className="rounded-xl border border-slate-700 bg-slate-950/95 px-3 py-2 text-xs text-white shadow-2xl">
+      {label && <p className="mb-1 text-slate-400">{label}</p>}
+      {payload.map((item) => <p key={item.name} style={{ color: item.color }}>{item.name}: {item.value}</p>)}
+    </div>
+  );
+}
+
+function KpiCard({ label, value, description, trend, progress, icon, tone }: {
+  label: string;
+  value: string;
+  description: string;
+  trend: string;
+  progress: number;
+  icon: ReactNode;
+  tone: string;
+}) {
+  return (
+    <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/70 p-5 shadow-xl shadow-blue-950/20 backdrop-blur transition duration-300 hover:-translate-y-0.5 hover:border-blue-400/40">
+      <div className={`absolute -right-8 -top-8 h-24 w-24 rounded-full blur-3xl ${tone}`} />
+      <div className="relative flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm text-slate-400">{label}</p>
+          <p className="mt-2 text-3xl font-bold text-white">{value}</p>
+          <p className="mt-1 text-xs text-slate-500">{description}</p>
+          <div className="mt-4 h-1.5 rounded-full bg-slate-800">
+            <div className="h-1.5 rounded-full bg-linear-to-r from-blue-500 to-purple-500" style={{ width: `${progress}%` }} />
+          </div>
+          <p className="mt-3 text-xs font-semibold text-emerald-300">{trend}</p>
         </div>
-        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${toneClasses[metric.tone]}`}>
-          <span className="h-2.5 w-2.5 rounded-full bg-current" />
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-blue-300">
+          {icon}
         </div>
       </div>
     </div>
@@ -549,157 +181,302 @@ function MetricCard({ metric }: { metric: Metric }) {
 }
 
 export default function EmailsDetail() {
-  const config = configs.emails;
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("All");
+  const [selectedEmail, setSelectedEmail] = useState<EmailRecord | null>(emails[0]);
+  const [showCompose, setShowCompose] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [employeeFilter, setEmployeeFilter] = useState<string>("All");
+  const [typeFilter, setTypeFilter] = useState<string>("All");
+  const [priorityFilter, setPriorityFilter] = useState<string>("All");
+  const [dateRange, setDateRange] = useState("");
 
-  const filteredRows = useMemo(() => {
-    const query = search.toLowerCase();
-    return config.rows.filter((row) => {
-      const matchesSearch = [row.title, row.subtitle, row.status, row.owner, row.channel]
-        .some((value) => value.toLowerCase().includes(query));
-      const matchesFilter = filter === "All" || row.status === filter;
-      return matchesSearch && matchesFilter;
-    });
-  }, [config.rows, filter, search]);
+  const employees = useMemo(() => Array.from(new Set(emails.map((email) => email.assignedEmployee))), []);
+
+  const filteredEmails = emails.filter((email) => {
+    const matchesStatus = statusFilter === "All" || email.status === statusFilter;
+    const matchesEmployee = employeeFilter === "All" || email.assignedEmployee === employeeFilter;
+    const matchesType = typeFilter === "All" || email.type === typeFilter;
+    const matchesPriority = priorityFilter === "All" || email.priority === priorityFilter;
+    const matchesDate = !dateRange || email.dateTime.includes(dateRange);
+    return matchesStatus && matchesEmployee && matchesType && matchesPriority && matchesDate;
+  });
 
   return (
-    <div className="crm-dashboard min-h-screen space-y-6 p-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
-          <div className="crm-icon-primary flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl">
-            {config.icon}
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-white">{config.title}</h1>
-            <p className="mt-1 text-sm text-slate-400">{config.description}</p>
-          </div>
-        </div>
-        <button className="crm-btn crm-btn-primary">
-          <HiOutlinePlus className="h-4 w-4" />
-          {config.action}
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {config.metrics.map((metric) => <MetricCard key={metric.label} metric={metric} />)}
-      </div>
-
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_340px]">
-        <div className="space-y-5">
-          <div className="crm-card rounded-2xl p-4">
+    <div className="min-h-screen bg-[#06101f] text-slate-100">
+      <div className="space-y-6 p-6">
+        <section className="overflow-hidden rounded-3xl border border-white/10 bg-linear-to-br from-slate-900 via-slate-950 to-blue-950/50 p-6 shadow-2xl shadow-blue-950/20">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-200">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                Communication command center
+              </div>
+              <h1 className="text-4xl font-bold text-white">Email Management</h1>
+              <p className="mt-2 max-w-3xl text-sm text-slate-400">Manage email conversations, campaigns, client communication, and follow-ups.</p>
+            </div>
             <div className="flex flex-wrap gap-3">
-              <div className="relative min-w-56 flex-1">
-                <HiOutlineSearch className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                <input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder={`Search ${config.title.toLowerCase()}...`}
-                  className="w-full rounded-xl border border-slate-600 bg-slate-800 py-2.5 pl-9 pr-4 text-sm text-white outline-none transition placeholder-slate-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div className="relative">
-                <select
-                  value={filter}
-                  onChange={(event) => setFilter(event.target.value)}
-                  className="appearance-none rounded-xl border border-slate-600 bg-slate-800 px-4 py-2.5 pr-8 text-sm text-white outline-none transition focus:border-blue-500"
-                >
-                  {config.filters.map((item) => <option key={item}>{item}</option>)}
-                </select>
-                <HiOutlineChevronDown className="pointer-events-none absolute right-2.5 top-3 h-4 w-4 text-slate-400" />
-              </div>
-
-              <div className="ml-auto flex items-center gap-2 text-xs text-slate-400">
-                <HiOutlineFilter className="h-4 w-4" />
-                {filteredRows.length} of {config.rows.length} records
-              </div>
+              <button onClick={() => setShowCompose(true)} className="crm-btn crm-btn-primary"><HiOutlinePlus className="h-4 w-4" />Compose Email</button>
+              <button className="crm-btn crm-btn-secondary"><HiOutlineCalendar className="h-4 w-4" />Schedule Email</button>
+              <button className="crm-btn crm-btn-secondary"><HiOutlineFilter className="h-4 w-4" />Filter</button>
+              <button className="crm-btn crm-btn-secondary"><HiOutlineDownload className="h-4 w-4" />Export</button>
             </div>
           </div>
+        </section>
 
-          <div className="crm-card overflow-hidden rounded-2xl">
-            <div className="overflow-x-auto">
-              <table className="crm-table">
-                <thead>
-                  <tr>
-                    {config.columns.map((column) => <th key={column.key}>{column.label}</th>)}
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          {kpis.map((kpi) => <KpiCard key={kpi.label} {...kpi} />)}
+        </section>
+
+        <section className="rounded-3xl border border-white/10 bg-slate-900/60 p-4 shadow-xl shadow-slate-950/30 backdrop-blur">
+          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
+            <HiOutlineFilter className="h-4 w-4 text-blue-300" />
+            Filters
+          </div>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-sm outline-none transition focus:border-blue-400/60">
+              <option>All</option>
+              {Object.keys(statusStyle).map((status) => <option key={status}>{status}</option>)}
+            </select>
+            <select value={employeeFilter} onChange={(event) => setEmployeeFilter(event.target.value)} className="h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-sm outline-none transition focus:border-blue-400/60">
+              <option>All</option>
+              {employees.map((employee) => <option key={employee}>{employee}</option>)}
+            </select>
+            <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} className="h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-sm outline-none transition focus:border-blue-400/60">
+              <option>All</option>
+              {["Sales Email", "Follow-up", "Proposal", "Support", "Marketing", "Internal"].map((type) => <option key={type}>{type}</option>)}
+            </select>
+            <select value={priorityFilter} onChange={(event) => setPriorityFilter(event.target.value)} className="h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-sm outline-none transition focus:border-blue-400/60">
+              <option>All</option>
+              <option>High</option>
+              <option>Medium</option>
+              <option>Low</option>
+            </select>
+            <input value={dateRange} onChange={(event) => setDateRange(event.target.value)} placeholder="Date range: May 11" className="h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-sm outline-none transition placeholder:text-slate-600 focus:border-blue-400/60" />
+          </div>
+        </section>
+
+        <section className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="min-w-0 rounded-3xl border border-white/10 bg-slate-900/50 p-5 shadow-2xl shadow-slate-950/30 backdrop-blur">
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-white">Email Conversations</h2>
+                <p className="text-sm text-slate-500">Subject, recipient, company, ownership, delivery state, priority, and fast actions.</p>
+              </div>
+              <span className="rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-200">{filteredEmails.length} records</span>
+            </div>
+            <div className="max-h-[620px] overflow-auto rounded-2xl border border-white/10 crm-scrollbar">
+              <table className="min-w-[1320px] w-full border-collapse">
+                <thead className="sticky top-0 z-10 bg-slate-950/95 backdrop-blur">
+                  <tr className="text-left text-xs uppercase text-slate-500">
+                    {["Subject", "Recipient", "Company", "Assigned Employee", "Email Type", "Date & Time", "Status", "Priority", "Actions"].map((column) => (
+                      <th key={column} className="px-4 py-3 font-semibold">{column}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredRows.length === 0 && (
-                    <tr>
-                      <td colSpan={config.columns.length} className="py-12 text-center text-slate-500">No records found</td>
-                    </tr>
-                  )}
-                  {filteredRows.map((row) => (
-                    <tr key={row.id}>
-                      {config.columns.map((column) => {
-                        if (column.key === "title") {
-                          return (
-                            <td key={column.key}>
-                              <div>
-                                <p className="text-sm font-semibold text-white">{row.title}</p>
-                                <p className="text-xs text-slate-400">{row.subtitle}</p>
-                              </div>
-                            </td>
-                          );
-                        }
-
-                        if (column.key === "status") {
-                          return (
-                            <td key={column.key}>
-                              <span className={`crm-badge text-xs ${badgeClasses[row.status] ?? "bg-slate-500/20 text-slate-400 border border-slate-500/30"}`}>
-                                {row.status}
-                              </span>
-                            </td>
-                          );
-                        }
-
-                        return <td key={column.key} className="text-sm text-slate-300">{row[column.key as keyof Row]}</td>;
-                      })}
+                  {filteredEmails.map((email) => (
+                    <tr key={email.id} onClick={() => setSelectedEmail(email)} className="cursor-pointer border-t border-white/10 transition hover:bg-blue-500/[0.06]">
+                      <td className="px-4 py-4">
+                        <p className="text-sm font-semibold text-white">{email.subject}</p>
+                        <p className="mt-1 max-w-md truncate text-xs text-slate-500">{email.preview}</p>
+                      </td>
+                      <td className="px-4 py-4">
+                        <p className="text-sm text-slate-200">{email.recipient}</p>
+                        <p className="text-xs text-slate-500">{email.recipientEmail}</p>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-slate-300">{email.company}</td>
+                      <td className="px-4 py-4 text-sm text-slate-300">{email.assignedEmployee}</td>
+                      <td className="px-4 py-4"><span className="rounded-lg border border-blue-400/20 bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-200">{email.type}</span></td>
+                      <td className="px-4 py-4 text-sm text-slate-400">{email.dateTime}</td>
+                      <td className="px-4 py-4"><span className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${statusStyle[email.status]}`}>{email.status}</span></td>
+                      <td className="px-4 py-4"><span className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${priorityStyle[email.priority]}`}>{email.priority}</span></td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-1.5">
+                          {[
+                            { title: "View", icon: <HiOutlineEye className="h-4 w-4" /> },
+                            { title: "Reply", icon: <HiOutlineReply className="h-4 w-4" /> },
+                            { title: "Forward", icon: <HiOutlineArrowRight className="h-4 w-4" /> },
+                            { title: "Edit", icon: <HiOutlinePencil className="h-4 w-4" /> },
+                            { title: "Delete", icon: <HiOutlineTrash className="h-4 w-4" /> },
+                          ].map((action) => (
+                            <button key={action.title} onClick={(event) => event.stopPropagation()} title={action.title} className="rounded-lg border border-white/10 bg-white/[0.04] p-2 text-slate-400 transition hover:border-blue-400/40 hover:text-white">
+                              {action.icon}
+                            </button>
+                          ))}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
-        </div>
 
-        <div className="space-y-5">
-          <div className="crm-card rounded-2xl p-5">
-            <h2 className="text-base font-semibold text-white">Focus</h2>
-            <div className="mt-4 space-y-3">
-              {config.focus.map((item) => (
-                <div key={item.label} className="rounded-xl bg-slate-800/50 px-4 py-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{item.label}</span>
-                    <span className="text-lg font-bold text-white">{item.value}</span>
-                  </div>
-                  <p className="mt-1 text-xs text-slate-400">{item.caption}</p>
-                </div>
-              ))}
+          <aside className="space-y-4 rounded-3xl border border-white/10 bg-slate-900/60 p-5 shadow-2xl shadow-slate-950/30 backdrop-blur">
+            <div>
+              <h2 className="text-lg font-bold text-white">Activity Panel</h2>
+              <p className="text-sm text-slate-500">Live follow-ups, replies, scheduled mail, and timeline signals.</p>
             </div>
-          </div>
+            {panelGroups.map((group) => (
+              <div key={group.title} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-blue-400/40">
+                <h3 className="text-sm font-bold text-white">{group.title}</h3>
+                <div className="mt-3 space-y-2">
+                  {group.items.map((item) => (
+                    <div key={item} className="flex gap-2 text-xs text-slate-400">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-400" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </aside>
+        </section>
 
-          <div className="crm-card rounded-2xl p-5">
-            <h2 className="text-base font-semibold text-white">Recent Activity</h2>
-            <div className="mt-4 space-y-3">
-              {config.activity.map((item) => (
-                <div key={item.title} className="flex gap-3 rounded-xl bg-slate-800/50 p-3">
-                  <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${toneClasses[item.tone]}`}>
-                    <span className="h-2 w-2 rounded-full bg-current" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-white">{item.title}</p>
-                    <p className="mt-0.5 text-xs text-slate-500">{item.meta}</p>
-                  </div>
-                </div>
-              ))}
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-7">
+          {featureCards.map((feature) => (
+            <div key={feature.title} className="rounded-2xl border border-white/10 bg-linear-to-br from-slate-900 to-blue-950/20 p-4 shadow-xl shadow-slate-950/20 transition hover:-translate-y-0.5 hover:border-purple-400/40">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-blue-200">{feature.icon}</div>
+              <p className="text-sm font-semibold text-white">{feature.title}</p>
             </div>
+          ))}
+        </section>
+
+        <section className="grid gap-5 xl:grid-cols-4">
+          <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 shadow-xl shadow-slate-950/30 xl:col-span-2">
+            <h3 className="mb-4 flex items-center gap-2 text-base font-bold text-white"><HiOutlineTrendingUp className="h-5 w-5 text-blue-300" />Open Rate Chart & Reply Rate Graph</h3>
+            <ResponsiveContainer width="100%" height={280}>
+              <AreaChart data={openRateData}>
+                <defs>
+                  <linearGradient id="openRateFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.45} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+                <XAxis dataKey="day" stroke="#64748b" tick={{ fontSize: 12 }} />
+                <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
+                <Tooltip content={<ChartTip />} />
+                <Area type="monotone" dataKey="open" name="Open Rate %" stroke="#3b82f6" fill="url(#openRateFill)" strokeWidth={2.5} />
+                <Line type="monotone" dataKey="reply" name="Reply Rate %" stroke="#a855f7" strokeWidth={2.5} />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
-        </div>
+          <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 shadow-xl shadow-slate-950/30">
+            <h3 className="mb-4 text-base font-bold text-white">Campaign Performance</h3>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={campaignData}>
+                <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+                <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 11 }} />
+                <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
+                <Tooltip content={<ChartTip />} />
+                <Bar dataKey="performance" name="Performance" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 shadow-xl shadow-slate-950/30">
+            <h3 className="mb-4 text-base font-bold text-white">Team Communication Metrics</h3>
+            <ResponsiveContainer width="100%" height={280}>
+              <LineChart data={teamMetrics}>
+                <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+                <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 12 }} />
+                <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
+                <Tooltip content={<ChartTip />} />
+                <Line type="monotone" dataKey="sent" name="Sent" stroke="#3b82f6" strokeWidth={3} />
+                <Line type="monotone" dataKey="replies" name="Replies" stroke="#10b981" strokeWidth={3} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 shadow-xl shadow-slate-950/30">
+          <h3 className="mb-4 flex items-center gap-2 text-base font-bold text-white"><HiOutlineChartBar className="h-5 w-5 text-purple-300" />Email Activity Trend</h3>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={openRateData}>
+              <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+              <XAxis dataKey="day" stroke="#64748b" tick={{ fontSize: 12 }} />
+              <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
+              <Tooltip content={<ChartTip />} />
+              <Bar dataKey="activity" name="Email Activity" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </section>
       </div>
+
+      {selectedEmail && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm">
+          <div className="h-full w-full max-w-3xl overflow-y-auto border-l border-white/10 bg-slate-950 p-6 shadow-2xl crm-scrollbar">
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase text-blue-300">{selectedEmail.id}</p>
+                <h2 className="mt-2 text-2xl font-bold text-white">{selectedEmail.subject}</h2>
+                <p className="mt-1 text-sm text-slate-400">{selectedEmail.company} - {selectedEmail.type}</p>
+              </div>
+              <button onClick={() => setSelectedEmail(null)} className="rounded-xl p-2 text-slate-400 transition hover:bg-white/10 hover:text-white"><HiOutlineX className="h-5 w-5" /></button>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl bg-white/[0.04] p-4"><p className="text-xs text-slate-500">Sender Information</p><p className="mt-1 text-sm font-semibold text-white">{selectedEmail.sender}</p><p className="text-xs text-slate-400">{selectedEmail.senderRole}</p></div>
+              <div className="rounded-2xl bg-white/[0.04] p-4"><p className="text-xs text-slate-500">Recipient Information</p><p className="mt-1 text-sm font-semibold text-white">{selectedEmail.recipient}</p><p className="text-xs text-slate-400">{selectedEmail.recipientEmail}</p></div>
+            </div>
+            <div className="mt-5 space-y-4">
+              {[
+                { title: "Full Email Conversation", body: `${selectedEmail.preview} The thread includes prior discovery notes, stakeholder alignment, and the next requested customer action.` },
+                { title: "Open Tracking", body: `${selectedEmail.openRate}% open rate, ${selectedEmail.replyTime}, last tracked on ${selectedEmail.dateTime}.` },
+                { title: "Related CRM Records", body: selectedEmail.crmTags.join(" / ") },
+                { title: "Notes & Activities", body: "Owner reviewed the thread, linked CRM records, and queued the next follow-up reminder." },
+              ].map((section) => (
+                <div key={section.title} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                  <h3 className="text-sm font-bold text-white">{section.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-400">{section.body}</p>
+                </div>
+              ))}
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <h3 className="text-sm font-bold text-white">Attachments</h3>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(selectedEmail.attachments.length ? selectedEmail.attachments : ["No attachments"]).map((attachment) => (
+                    <span key={attachment} className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2 text-xs text-slate-300"><HiOutlinePaperClip className="h-4 w-4" />{attachment}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <h3 className="text-sm font-bold text-white">Email Timeline</h3>
+                <div className="mt-3 space-y-3">
+                  {["Email created", "CRM record linked", selectedEmail.status === "Replied" ? "Client replied" : "Open tracking updated"].map((item) => (
+                    <div key={item} className="flex gap-3"><span className="mt-1 h-2 w-2 rounded-full bg-blue-400" /><div><p className="text-sm font-semibold text-white">{item}</p><p className="text-xs text-slate-500">Automated communication log</p></div></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCompose && (
+        <div className="fixed inset-0 z-50 flex items-end justify-end bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-xl rounded-3xl border border-white/10 bg-slate-950 p-5 shadow-2xl shadow-blue-950/40">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-white">Compose Email</h2>
+              <button onClick={() => setShowCompose(false)} className="rounded-xl p-2 text-slate-400 transition hover:bg-white/10 hover:text-white"><HiOutlineX className="h-5 w-5" /></button>
+            </div>
+            <div className="space-y-3">
+              <input placeholder="Recipient" className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm outline-none placeholder:text-slate-600 focus:border-blue-400/60" />
+              <input placeholder="Subject" className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm outline-none placeholder:text-slate-600 focus:border-blue-400/60" />
+              <textarea placeholder="Write a client-ready message..." rows={6} className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm outline-none placeholder:text-slate-600 focus:border-blue-400/60" />
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex gap-2 text-slate-400">
+                  <button title="Attach file" className="rounded-lg border border-white/10 bg-white/[0.04] p-2 hover:text-white"><HiOutlinePaperClip className="h-4 w-4" /></button>
+                  <button title="Template" className="rounded-lg border border-white/10 bg-white/[0.04] p-2 hover:text-white"><HiOutlineTemplate className="h-4 w-4" /></button>
+                  <button title="CRM tag" className="rounded-lg border border-white/10 bg-white/[0.04] p-2 hover:text-white"><HiOutlineTag className="h-4 w-4" /></button>
+                </div>
+                <button onClick={() => setShowCompose(false)} className="crm-btn crm-btn-primary"><HiOutlineSparkles className="h-4 w-4" />Send Email</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <button onClick={() => setShowCompose(true)} className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500 to-purple-500 text-white shadow-2xl shadow-blue-950/50 transition hover:-translate-y-1" title="Compose Email">
+        <HiOutlinePlus className="h-6 w-6" />
+      </button>
     </div>
   );
 }
-
