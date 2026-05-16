@@ -12,15 +12,11 @@ import {
   HiOutlineShoppingCart,
   HiOutlineTruck,
   HiOutlineOfficeBuilding,
-  HiOutlineCurrencyDollar,
   HiOutlineReceiptTax,
   HiOutlineCalculator,
-  HiOutlineClipboardList,
-  HiOutlineDocumentReport,
   HiOutlineChartBar,
   HiOutlineBriefcase,
   HiOutlineCog,
-  HiOutlineBell,
   HiOutlineCash,
   HiOutlineCreditCard,
   HiOutlineChevronLeft,
@@ -126,20 +122,6 @@ const erpSidebarItems = [
     href: "/erp/reports",
   },
 
-  // Activity Logs
-  {
-    icon: <HiOutlineClipboardList className="w-5 h-5" />,
-    label: "Activity Logs",
-    href: "/erp/logs",
-  },
-
-  // Notifications
-  {
-    icon: <HiOutlineBell className="w-5 h-5" />,
-    label: "Notifications",
-    href: "/erp/notifications",
-  },
-
   // Settings
   {
     icon: <HiOutlineCog className="w-5 h-5" />,
@@ -196,24 +178,6 @@ export default function ERPSideBar() {
                 ))}
             </nav>
 
-            {/* Footer / User */}
-            <div className="sidebar-footer px-3 py-3">
-                <div className="sidebar-user-row flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer">
-                    <div className="avatar-ring w-8 h-8 shrink-0">
-                        <div className="avatar-inner">
-                            <span className="text-white text-xs font-bold">JD</span>
-                        </div>
-                    </div>
-                    {isOpen && (
-                        <div className="overflow-hidden">
-                            <p className="text-sm font-medium text-slate-100 truncate leading-tight">John Doe</p>
-                            <p className="text-xs truncate leading-tight" style={{ color: "var(--text-faint)" }}>
-                                john@nexapanel.com
-                            </p>
-                        </div>
-                    )}
-                </div>
-            </div>
         </aside>
     );
 }
